@@ -6,6 +6,10 @@
 - [Home and FAQ](https://nordkiln.dev/): overview and answers about vibe coding security, Supabase RLS, Firebase rules and leaked API keys
 - [NordKiln Scan](https://nordkiln.dev/scan/): what is checked, how it works, planned pricing
 - [Free Supabase RLS checker](https://nordkiln.dev/tools/supabase-check/): browser-only tool to see if the anon key can read tables, detect service_role leaks and common API secrets; nothing uploaded
+- [Supabase RLS checklist](https://nordkiln.dev/guides/supabase-rls-checklist/): step-by-step pre-launch RLS checks, including the two-user test
+- [Secure a vibe-coded app](https://nordkiln.dev/guides/secure-vibe-coded-app/): pre-launch guide for secrets, database rules, logged-in access and rate limits
+- [NordKiln vs Bleek](https://nordkiln.dev/compare/nordkiln-vs-bleek/): fair comparison; NordKiln focuses on logged-in cross-user (IDOR) tests
+- [NordKiln vs Vibeproof](https://nordkiln.dev/compare/nordkiln-vs-vibeproof/): fair comparison with vibeproof.sh
 - [Privacy](https://nordkiln.dev/privacy/)
 - [Terms](https://nordkiln.dev/terms/): scan only apps you own or are authorized to test
 
