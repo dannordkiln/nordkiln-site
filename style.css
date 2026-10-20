@@ -1,0 +1,50 @@
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;font:17px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:#f4f4f2;color:#1d2125}
+a{color:#0f5c8c}img,svg{max-width:100%}
+.w{max-width:1080px;margin:0 auto;padding:0 20px}
+.top{background:#16191d;color:#fff;border-bottom:4px solid #f2b705}
+.top .w{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:64px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;font-weight:800;font-size:20px;letter-spacing:.5px}
+.logo svg{width:34px;height:34px}
+.nav{display:flex;gap:18px;flex-wrap:wrap;font-size:15px}
+.nav a{color:#e6e6e6;text-decoration:none}.nav a:hover{color:#f2b705}
+.nav a.cta{background:#f2b705;color:#16191d;padding:7px 14px;border-radius:6px;font-weight:700}
+.hero{background:linear-gradient(135deg,#1d2125 0%,#2b3138 100%);color:#fff;padding:64px 0 56px;position:relative;overflow:hidden}
+.hero:after{content:"";position:absolute;right:0;top:0;bottom:0;width:38%;background:repeating-linear-gradient(-45deg,rgba(242,183,5,.10) 0 18px,transparent 18px 36px);pointer-events:none}
+.hero .w{position:relative;z-index:1}
+.hero h1{font-size:clamp(30px,5vw,48px);line-height:1.12;margin:0 0 16px;max-width:760px}
+.hero p.lead{font-size:clamp(17px,2.2vw,20px);color:#d5d8dc;max-width:680px;margin:0 0 28px}
+.btn{display:inline-block;background:#f2b705;color:#16191d;font-weight:800;text-decoration:none;padding:14px 24px;border-radius:8px;border:0;font-size:17px;cursor:pointer}
+.btn:hover{background:#ffc928}.btn.ghost{background:transparent;color:#fff;border:2px solid #6b737c;margin-left:10px}
+.hero .note{font-size:14px;color:#aab0b6;margin-top:18px}
+section{padding:56px 0}section.alt{background:#fff}
+h2{font-size:clamp(24px,3.4vw,32px);line-height:1.2;margin:0 0 12px}
+h3{font-size:19px;margin:0 0 6px}
+.sub{color:#555c63;max-width:720px;margin:0 0 28px}
+.grid{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.card{background:#fff;border:1px solid #dfe1e3;border-radius:10px;padding:22px;border-top:4px solid #f2b705}
+section.alt .card{background:#f8f8f6}
+.card p{margin:0;color:#41474d;font-size:16px}
+.ico{width:44px;height:44px;margin-bottom:10px;color:#16191d}
+.steps{counter-reset:s;display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.step{background:#16191d;color:#fff;border-radius:10px;padding:24px;position:relative}
+.step:before{counter-increment:s;content:counter(s);display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:50%;background:#f2b705;color:#16191d;font-weight:800;font-size:20px;margin-bottom:12px}
+.step p{margin:0;color:#cfd3d7;font-size:16px}
+form.quote{background:#fff;border:1px solid #dfe1e3;border-radius:12px;padding:26px;display:grid;gap:16px;grid-template-columns:1fr 1fr}
+form.quote .full{grid-column:1/-1}
+label{display:block;font-weight:600;font-size:15px;margin-bottom:5px}
+label .opt{font-weight:400;color:#6b737c}
+input,select,textarea{width:100%;font:inherit;font-size:16px;padding:11px 12px;border:1px solid #b9bec3;border-radius:7px;background:#fff;color:#1d2125}
+input:focus,select:focus,textarea:focus{outline:3px solid rgba(242,183,5,.5);border-color:#c99700}
+textarea{min-height:120px;resize:vertical}
+.hp{position:absolute;left:-9999px}
+.small{font-size:14px;color:#5b6168}
+.faq details{background:#fff;border:1px solid #dfe1e3;border-radius:8px;padding:14px 18px;margin-bottom:10px}
+section.alt .faq details{background:#f8f8f6}
+.faq summary{font-weight:700;cursor:pointer}
+.faq details p{margin:10px 0 0;color:#41474d}
+.prose{max-width:760px}.prose h2{font-size:24px;margin-top:32px}
+footer{background:#16191d;color:#aab0b6;padding:34px 0;font-size:15px}
+footer a{color:#e6e6e6}footer .w{display:flex;gap:24px;flex-wrap:wrap;justify-content:space-between}
+footer nav a{margin-right:16px}
+@media(max-width:640px){form.quote{grid-template-columns:1fr;padding:18px}.btn.ghost{margin:12px 0 0}.hero{padding:44px 0}.hero:after{display:none}section{padding:42px 0}.nav{gap:12px}.nav a:not(.cta){display:none}}
