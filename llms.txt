@@ -1,16 +1,21 @@
 # NordKiln
+> Rent outdoor and winter gear in Northern Norway. Peer-to-peer rental of skis, snowshoes, snowboards, winter clothes, hiking/camping gear and wet/dry suits from locals in Troms (Tromsø, Balsfjord, Lyngen), expanding to Senja and Lofoten. Delivery to cabins/Airbnbs or pickup.
 
-> NordKiln lager gravemaskinbolter, bolter med ekspansjonslås og foringer (bøssinger) til gravemaskiner og andre anleggsmaskiner etter kundens mål, for kunder i Norge. Kunden sender mål eller bilde, får et skriftlig tilbud med pris og leveringstid, og delene produseres etter målene hos vår produsent.
+- Owners list for free (0% fee). Renters pay a 15% service fee on top of the owner's price (minimum 49 NOK per booking).
+- Booking is request-based: send a request on the site, the owner confirms, then total price and payment details are sent by email. No payment on the website yet.
+- No insurance or payment guarantee; deposit and damage are agreed between owner and renter.
+- Languages: English (https://nordkiln.dev/), Norwegian (https://nordkiln.dev/no/), German (https://nordkiln.dev/de/).
+- Contact: scan.nordkiln@mail.grokbot.com
 
-Språk: norsk. Kontakt: scan.nordkiln@mail.grokbot.com
+## Current listings
+- Völkl touring ski set with skins and boots: 450 NOK/day + renter fee, Balsfjord, pickup or delivery
+- Cross-country skis: 250 NOK/day + renter fee, Balsfjord, pickup or delivery
+- Snowshoes: 150 NOK/day + renter fee, Balsfjord, pickup or delivery
+Live data: https://nordkiln.dev/listings.json
 
-## Sider
-- [Forside](https://nordkiln.dev/): produkter (gravemaskinbolter, bolter med ekspansjonslås, foringer på mål, bolt- og foringssett), slik fungerer det, hvem det passer for, FAQ
-- [Be om pris](https://nordkiln.dev/pris/): skjema for uforpliktende prisforespørsel (maskin, type del, diameter og lengde i mm, antall, bilde)
-- [Personvern](https://nordkiln.dev/personvern/)
-- [Vilkår](https://nordkiln.dev/vilkar/)
-
-## Fakta
-- Priser og leveringstid oppgis kun i tilbud etter forespørsel; det finnes ingen fast prisliste.
-- Forespørsler er gratis og uforpliktende.
-- Målgruppe: maskinentreprenører, bønder, verksteder og maskineiere i Norge.
+## Pages
+- [Rent gear (EN)](https://nordkiln.dev/) · [Lei utstyr (NO)](https://nordkiln.dev/no/) · [Ausrüstung mieten (DE)](https://nordkiln.dev/de/)
+- [List your gear for free](https://nordkiln.dev/owners/) · [Lei ut gratis](https://nordkiln.dev/no/utleiere/)
+- [FAQ](https://nordkiln.dev/faq/)
+- [Rent ski gear in Tromsø](https://nordkiln.dev/rent/ski-gear-tromso/) · [Snowshoe rental Lofoten](https://nordkiln.dev/rent/snowshoes-lofoten/) · [Rent winter clothes Tromsø](https://nordkiln.dev/rent/winter-clothes-tromso/)
+- [Lei skiutstyr i Tromsø](https://nordkiln.dev/no/lei/skiutstyr-tromso/) · [Lei truger Lofoten](https://nordkiln.dev/no/lei/truger-lofoten/) · [Ski mieten in Tromsø](https://nordkiln.dev/de/mieten/ski-tromso/)

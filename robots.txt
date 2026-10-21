@@ -1,4 +1,3 @@
 User-agent: *
 Allow: /
-
 Sitemap: https://nordkiln.dev/sitemap.xml
