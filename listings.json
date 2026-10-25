@@ -1,5 +1,5 @@
 {
-  "_note": "Curated by NordKiln. price_per_day = owner's price in NOK (renter fee is added on top). lat/lng are approximate (area, not exact address). photo_credit is required when photo_illustration is true. Size fields: shoe_eu (number or [min,max]), clothing_size (list like [\"M\",\"L\"] or null), ski_length_cm, fits_height_cm ([min,max]).",
+  "_note": "Curated by NordKiln. price_per_day = owner's price in NOK (renter fee is added on top). lat/lng are approximate (area, not exact address). photo_credit is required when photo_illustration is true. Size fields: shoe_eu (number or [min,max]), clothing_size (list like [\"M\",\"L\"] or null), ski_length_cm, fits_height_cm ([min,max]). Live data is in Supabase; this file is the static fallback.",
   "listings": [
     {
       "id": "volkl-touring-set",

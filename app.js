@@ -8,10 +8,6 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
 function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
 var listings=[],cat=NK.cat||'all',map,layer,byId={};
 var SZ={shoe:'',cloth:'',height:''};try{var _s=JSON.parse(ls('nk_size')||'{}');for(var k in SZ)if(_s[k])SZ[k]=String(_s[k])}catch(e){}
-/* ---------- push (ntfy.sh, no personal data, fire-and-forget) ---------- */
-function push(topic,msg){try{if(!topic||NK.api)return;var u=NK.ntfy+encodeURIComponent(topic)+'?title=NordKiln&priority=high&tags=ski&click='+encodeURIComponent(NK.domain+'/no/');
-  var ok=false;if(navigator.sendBeacon){ok=navigator.sendBeacon(u,new Blob([msg],{type:'text/plain'}))}
-  if(!ok&&window.fetch){fetch(u,{method:'POST',body:msg,mode:'no-cors',keepalive:true}).catch(function(){})}}catch(e){}}
 function dmy(v){if(!v)return'';var p=v.split('-');return (+p[2])+'.'+(+p[1])+'.'}
 function days(a,b){if(!a||!b)return 0;return Math.max(1,Math.round((new Date(b)-new Date(a))/864e5))}
 /* ---------- sizes ---------- */
@@ -102,14 +98,8 @@ if(dlg){
   em.addEventListener('input',cv);ph.addEventListener('input',cv);
   $('m-form').addEventListener('submit',function(e){cv();if(!this.checkValidity()){e.preventDefault();this.reportValidity();return}
     rcalc();var d=days($('m-from').value,$('m-to').value);
-    if(NK.api&&cur&&cur.uuid&&!this._fallback){e.preventDefault();apiSubmit(this);return}
-    push(cur&&cur.owner_ntfy_topic||NK.admin,'Ny leieforespørsel: '+(cur?t(cur.title&&cur.title.no||cur.title):'utstyr')+', '+d+' dager, '+dmy($('m-from').value)+'–'+dmy($('m-to').value)+' Sjekk e-post.')});
+    if(NK.api&&cur&&cur.uuid&&!this._fallback){e.preventDefault();apiSubmit(this);return}});
 }
-var rf=$('request-form');if(rf)rf.addEventListener('submit',function(){var s=$('r-item'),op=s&&s.options[s.selectedIndex],id=op&&op.getAttribute('data-id'),x=id&&byId[id];
-  var what=x?(x.title.no||t(x.title)):(NK.catsNo[$('r-cat').value]||'utstyr');
-  push(x&&x.owner_ntfy_topic||NK.admin,'Ny forespørsel: '+what+', '+dmy($('r-from').value)+'–'+dmy($('r-to').value)+' Sjekk e-post.')});
-var of=$('owner-form');if(of)of.addEventListener('submit',function(){push(NK.admin,'Ny utleier har meldt seg: '+(NK.catsNo[$('o-cat').value]||'utstyr')+'. Sjekk e-post.')});
-
 /* ---------- backend (Supabase) ---------- */
 var t0=0;
 function apiSubmit(f){var btn=f.querySelector('button[type=submit]'),lbl=btn.textContent,err=$('m-err');btn.disabled=true;btn.textContent=S.b_sending;if(err)err.hidden=true;
