@@ -4,7 +4,8 @@
 - Owners list for free (0% fee). Renters pay a 15% service fee on top of the owner's price (minimum 49 NOK per booking).
 - Booking is request-based: send a request on the site, the owner confirms, then total price and payment details are sent by email. No payment on the website yet.
 - No insurance or payment guarantee; deposit and damage are agreed between owner and renter.
-- Languages: English (https://nordkiln.dev/), Norwegian (https://nordkiln.dev/no/), German (https://nordkiln.dev/de/).
+- Languages: English (https://nordkiln.dev/), Norwegian (https://nordkiln.dev/no/), German (https://nordkiln.dev/de/), Simplified Chinese (https://nordkiln.dev/zh/).
+- Size search: shoe size (EU, with UK/US/CN hints), clothing size, body height. Listings carry shoe_eu, clothing_size, ski_length_cm, fits_height_cm.
 - Contact: scan.nordkiln@mail.grokbot.com
 
 ## Current listings
@@ -14,8 +15,8 @@
 Live data: https://nordkiln.dev/listings.json
 
 ## Pages
-- [Rent gear (EN)](https://nordkiln.dev/) · [Lei utstyr (NO)](https://nordkiln.dev/no/) · [Ausrüstung mieten (DE)](https://nordkiln.dev/de/)
+- [Rent gear (EN)](https://nordkiln.dev/) · [Lei utstyr (NO)](https://nordkiln.dev/no/) · [Ausrüstung mieten (DE)](https://nordkiln.dev/de/) · [租装备 (ZH)](https://nordkiln.dev/zh/)
 - [List your gear for free](https://nordkiln.dev/owners/) · [Lei ut gratis](https://nordkiln.dev/no/utleiere/)
 - [FAQ](https://nordkiln.dev/faq/)
 - [Rent ski gear in Tromsø](https://nordkiln.dev/rent/ski-gear-tromso/) · [Snowshoe rental Lofoten](https://nordkiln.dev/rent/snowshoes-lofoten/) · [Rent winter clothes Tromsø](https://nordkiln.dev/rent/winter-clothes-tromso/)
-- [Lei skiutstyr i Tromsø](https://nordkiln.dev/no/lei/skiutstyr-tromso/) · [Lei truger Lofoten](https://nordkiln.dev/no/lei/truger-lofoten/) · [Ski mieten in Tromsø](https://nordkiln.dev/de/mieten/ski-tromso/)
+- [Lei skiutstyr i Tromsø](https://nordkiln.dev/no/lei/skiutstyr-tromso/) · [Lei truger Lofoten](https://nordkiln.dev/no/lei/truger-lofoten/) · [Ski mieten in Tromsø](https://nordkiln.dev/de/mieten/ski-tromso/) · [在特罗姆瑟租滑雪装备](https://nordkiln.dev/zh/rent/ski-gear-tromso/)

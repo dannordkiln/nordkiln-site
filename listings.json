@@ -1,50 +1,116 @@
 {
-  "_note": "Curated by NordKiln. price_per_day = owner's price in NOK (renter fee is added on top). lat/lng are approximate (area, not exact address). photo_credit is required when photo_illustration is true.",
+  "_note": "Curated by NordKiln. price_per_day = owner's price in NOK (renter fee is added on top). lat/lng are approximate (area, not exact address). photo_credit is required when photo_illustration is true. Size fields: shoe_eu (number or [min,max]), clothing_size (list like [\"M\",\"L\"] or null), ski_length_cm, fits_height_cm ([min,max]). owner_ntfy_topic = owner's ntfy.sh topic (push on new request, no personal data).",
   "listings": [
     {
       "id": "volkl-touring-set",
       "category": "ski",
-      "title": {"no": "Völkl randonéesett med feller og støvler", "en": "Völkl touring ski set with skins and boots", "de": "Völkl Tourenski-Set mit Fellen und Schuhen"},
-      "description": {"no": "Völkl randonéeski (topptur) med feller og støvler. Klar for tur fra hytta.", "en": "Völkl touring (randonnée) skis with climbing skins and boots. Ready to go from the cabin.", "de": "Völkl Tourenski mit Steigfellen und Schuhen. Startklar ab der Hütte."},
+      "title": {
+        "no": "Völkl randonéesett med feller og støvler",
+        "en": "Völkl touring ski set with skins and boots",
+        "de": "Völkl Tourenski-Set mit Fellen und Schuhen",
+        "zh": "Völkl 登山滑雪套装（含止滑带和雪靴）"
+      },
+      "description": {
+        "no": "Völkl randonéeski (topptur) med feller og støvler. Klar for tur fra hytta.",
+        "en": "Völkl touring (randonnée) skis with climbing skins and boots. Ready to go from the cabin.",
+        "de": "Völkl Tourenski mit Steigfellen und Schuhen. Startklar ab der Hütte.",
+        "zh": "Völkl 登山滑雪板（randonnée），配止滑带和雪靴，从小屋出发即可使用。"
+      },
       "size": null,
       "price_per_day": 450,
       "deposit": null,
       "place": "Balsfjord",
-      "lat": 69.2408, "lng": 19.2336,
-      "pickup": true, "delivery": true,
+      "lat": 69.2408,
+      "lng": 19.2336,
+      "pickup": true,
+      "delivery": true,
       "photo": "/img/touring-skis.webp",
       "photo_illustration": true,
-      "photo_credit": {"author": "SKas", "license": "CC BY-SA 4.0", "license_url": "https://creativecommons.org/licenses/by-sa/4.0/", "source": "https://commons.wikimedia.org/wiki/File:Skitouring_in_Krasnya_Polyana.JPG"}
+      "photo_credit": {
+        "author": "SKas",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source": "https://commons.wikimedia.org/wiki/File:Skitouring_in_Krasnya_Polyana.JPG"
+      },
+      "owner_ntfy_topic": "nordkiln-dan-b956690d5ec94105c180b4a2",
+      "shoe_eu": 42,
+      "clothing_size": null,
+      "ski_length_cm": null,
+      "fits_height_cm": null
     },
     {
       "id": "cross-country-skis",
       "category": "ski",
-      "title": {"no": "Langrennsski", "en": "Cross-country skis", "de": "Langlaufski"},
-      "description": {"no": "Langrennsski for turer i løypa eller på fjellet.", "en": "Cross-country skis for tracks and easy tours.", "de": "Langlaufski für Loipe und leichte Touren."},
+      "title": {
+        "no": "Langrennsski",
+        "en": "Cross-country skis",
+        "de": "Langlaufski",
+        "zh": "越野滑雪板"
+      },
+      "description": {
+        "no": "Langrennsski for turer i løypa eller på fjellet.",
+        "en": "Cross-country skis for tracks and easy tours.",
+        "de": "Langlaufski für Loipe und leichte Touren.",
+        "zh": "适合雪道和轻松短途的越野滑雪板。"
+      },
       "size": null,
       "price_per_day": 250,
       "deposit": null,
       "place": "Balsfjord",
-      "lat": 69.2408, "lng": 19.2336,
-      "pickup": true, "delivery": true,
+      "lat": 69.2408,
+      "lng": 19.2336,
+      "pickup": true,
+      "delivery": true,
       "photo": "/img/cross-country-skis.webp",
       "photo_illustration": true,
-      "photo_credit": {"author": "Martin Eklund", "license": "CC0", "license_url": "https://creativecommons.org/publicdomain/zero/1.0/", "source": "https://commons.wikimedia.org/wiki/File:Cross-country_skiing_with_clear_sky.jpg"}
+      "photo_credit": {
+        "author": "Martin Eklund",
+        "license": "CC0",
+        "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "source": "https://commons.wikimedia.org/wiki/File:Cross-country_skiing_with_clear_sky.jpg"
+      },
+      "owner_ntfy_topic": "nordkiln-dan-b956690d5ec94105c180b4a2",
+      "shoe_eu": 42,
+      "clothing_size": null,
+      "ski_length_cm": null,
+      "fits_height_cm": null
     },
     {
       "id": "snowshoes",
       "category": "snowshoes",
-      "title": {"no": "Truger", "en": "Snowshoes", "de": "Schneeschuhe"},
-      "description": {"no": "Truger for turer i dyp snø rundt hytta og i fjellet.", "en": "Snowshoes for walks in deep snow around the cabin and in the hills.", "de": "Schneeschuhe für Wanderungen im Tiefschnee rund um die Hütte."},
+      "title": {
+        "no": "Truger",
+        "en": "Snowshoes",
+        "de": "Schneeschuhe",
+        "zh": "雪鞋"
+      },
+      "description": {
+        "no": "Truger for turer i dyp snø rundt hytta og i fjellet.",
+        "en": "Snowshoes for walks in deep snow around the cabin and in the hills.",
+        "de": "Schneeschuhe für Wanderungen im Tiefschnee rund um die Hütte.",
+        "zh": "适合在小屋周围和山间深雪中行走的雪鞋。"
+      },
       "size": null,
       "price_per_day": 150,
       "deposit": null,
       "place": "Balsfjord",
-      "lat": 69.2408, "lng": 19.2336,
-      "pickup": true, "delivery": true,
+      "lat": 69.2408,
+      "lng": 19.2336,
+      "pickup": true,
+      "delivery": true,
       "photo": "/img/snowshoes.webp",
       "photo_illustration": true,
-      "photo_credit": {"author": "Christoph Strässler", "license": "CC BY-SA 2.0", "license_url": "https://creativecommons.org/licenses/by-sa/2.0/", "source": "https://commons.wikimedia.org/wiki/File:Snowshoeing_in_Troms,_Norway.jpg"}
+      "photo_credit": {
+        "author": "Christoph Strässler",
+        "license": "CC BY-SA 2.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/2.0/",
+        "source": "https://commons.wikimedia.org/wiki/File:Snowshoeing_in_Troms,_Norway.jpg"
+      },
+      "owner_ntfy_topic": "nordkiln-dan-b956690d5ec94105c180b4a2",
+      "shoe_eu": 42,
+      "clothing_size": null,
+      "ski_length_cm": null,
+      "fits_height_cm": null
     }
   ]
 }
