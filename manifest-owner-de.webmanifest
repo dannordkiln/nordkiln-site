@@ -1,0 +1,30 @@
+{
+ "name": "NordKiln · Meine Angebote",
+ "short_name": "NordKiln",
+ "description": "Outdoor- und Winterausrüstung in Nordnorwegen mieten",
+ "lang": "de",
+ "start_url": "/de/meine/?source=pwa",
+ "scope": "/",
+ "id": "/de/meine/",
+ "display": "standalone",
+ "background_color": "#ffffff",
+ "theme_color": "#0d2233",
+ "icons": [
+  {
+   "src": "/icons/icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png"
+  },
+  {
+   "src": "/icons/icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png"
+  },
+  {
+   "src": "/icons/maskable-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  }
+ ]
+}

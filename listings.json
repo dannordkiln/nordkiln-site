@@ -1,5 +1,5 @@
 {
-  "_note": "Curated by NordKiln. price_per_day = owner's price in NOK (renter fee is added on top). lat/lng are approximate (area, not exact address). photo_credit is required when photo_illustration is true. Size fields: shoe_eu (number or [min,max]), clothing_size (list like [\"M\",\"L\"] or null), ski_length_cm, fits_height_cm ([min,max]). owner_ntfy_topic = owner's ntfy.sh topic (push on new request, no personal data).",
+  "_note": "Curated by NordKiln. price_per_day = owner's price in NOK (renter fee is added on top). lat/lng are approximate (area, not exact address). photo_credit is required when photo_illustration is true. Size fields: shoe_eu (number or [min,max]), clothing_size (list like [\"M\",\"L\"] or null), ski_length_cm, fits_height_cm ([min,max]).",
   "listings": [
     {
       "id": "volkl-touring-set",
@@ -32,7 +32,6 @@
         "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
         "source": "https://commons.wikimedia.org/wiki/File:Skitouring_in_Krasnya_Polyana.JPG"
       },
-      "owner_ntfy_topic": "nordkiln-dan-b956690d5ec94105c180b4a2",
       "shoe_eu": 42,
       "clothing_size": null,
       "ski_length_cm": null,
@@ -69,7 +68,6 @@
         "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
         "source": "https://commons.wikimedia.org/wiki/File:Cross-country_skiing_with_clear_sky.jpg"
       },
-      "owner_ntfy_topic": "nordkiln-dan-b956690d5ec94105c180b4a2",
       "shoe_eu": 42,
       "clothing_size": null,
       "ski_length_cm": null,
@@ -106,7 +104,6 @@
         "license_url": "https://creativecommons.org/licenses/by-sa/2.0/",
         "source": "https://commons.wikimedia.org/wiki/File:Snowshoeing_in_Troms,_Norway.jpg"
       },
-      "owner_ntfy_topic": "nordkiln-dan-b956690d5ec94105c180b4a2",
       "shoe_eu": 42,
       "clothing_size": null,
       "ski_length_cm": null,
