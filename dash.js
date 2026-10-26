@@ -10,7 +10,7 @@ function dmy(v){if(!v)return'';var p=v.split('-');return (+p[2])+'.'+(+p[1])+'.'
 function photoUrl(p){return /^(https?:)?\//.test(p)?p:A.url+'/storage/v1/object/public/listing-photos/'+p}
 function show(id,on){var e=$(id);if(e)e.hidden=!on}
 function toast(msg){var e=$('d-toast');e.textContent=msg;e.hidden=false;clearTimeout(e._t);e._t=setTimeout(function(){e.hidden=true},3500)}
-var user=null,profile=null,listings=[],reqs=[],editing=null,photos=[];
+var user=null,profile=null,listings=[],priv={},reqs=[],editing=null,photos=[],mps=[],mpActive=-1;
 /* ---------- login (email code; link also works) ---------- */
 var em='';
 $('d-email-form').addEventListener('submit',function(e){e.preventDefault();em=$('d-email').value.trim().toLowerCase();var b=this.querySelector('button');b.disabled=true;
@@ -32,13 +32,14 @@ function loadProfile(){sb.from('owners').select('name,phone,language,place').eq(
 $('d-profile-form').addEventListener('submit',function(e){e.preventDefault();
   var v={name:$('p-name').value.trim()||null,phone:$('p-phone').value.trim()||null,place:$('p-place').value.trim()||null,language:$('p-lang').value};
   sb.from('owners').update(v).eq('id',user.id).then(function(r){if(r.error){toast(S.f_err);return}profile=v;toast(S.d_saved);show('d-profile-need',!(v.name&&v.phone))})});
-function loadListings(){sb.from('listings').select('*').eq('owner_id',user.id).order('created_at').then(function(r){listings=r.data||[];renderListings()})}
+function loadListings(){sb.from('listings').select('*').eq('owner_id',user.id).order('created_at').then(function(r){listings=r.data||[];renderListings()});
+  sb.from('listing_private').select('*').eq('owner_id',user.id).then(function(r){priv={};(r.data||[]).forEach(function(p){priv[p.listing_id]=p});renderListings()})}
 function renderListings(){var box=$('d-list');
   if(!listings.length){box.innerHTML='<p class="small">'+S.d_none+'</p>';return}
   box.innerHTML=listings.map(function(x){var img=x.photos&&x.photos[0]?'<img src="'+esc(photoUrl(x.photos[0]))+'" alt="" loading="lazy">':'<div class="noimg">📷</div>';
-    return '<div class="dl'+(x.active?'':' off')+'">'+img+'<div class="dlb"><b>'+esc(t(x.title))+'</b><span class="small">'+(x.price_per_day?fmt(x.price_per_day)+' '+S.per_day:'')+' · 📍 '+esc(x.place)+'</span>'+
+    return '<div class="dl'+(x.active?'':' off')+'">'+img+'<div class="dlb"><b>'+esc(t(x.title))+'</b><span class="small">'+(x.price_per_day?fmt(x.price_per_day)+' '+S.per_day:'')+' · 📍 '+esc(x.place)+(x.deposit?' · '+S.d_dep_v+' '+fmt(x.deposit)+' kr':'')+'</span>'+(priv[x.id]&&priv[x.id].address_is_approx?'<span class="small warn">'+esc(S.f_addr_approx)+'</span>':'')+
     '<div class="dla"><label class="sw"><input type="checkbox" data-act="toggle" data-id="'+x.id+'"'+(x.active?' checked':'')+'> '+(x.active?S.d_active:S.d_hidden)+'</label><button class="linkbtn" data-act="edit" data-id="'+x.id+'">'+S.d_edit+'</button></div></div></div>'}).join('')}
-var RQSEL='id,listing_id,renter_name,renter_email,renter_phone,date_from,date_to,days,mode,address,size,message,language,subtotal,fee,total,deposit,status,payment_status,deposit_status,owner_note,created_at,listings(title)';
+var RQSEL='id,listing_id,renter_name,renter_email,renter_phone,date_from,date_to,days,mode,address,size,message,language,subtotal,fee,total,deposit,status,payment_status,deposit_status,owner_note,created_at,meeting_point,delivery_km,delivery_price,pickup_time,return_by,rules_version,rules_accepted_at,listings(title)';
 function loadReqs(){sb.from('rental_requests').select(RQSEL).order('created_at',{ascending:false}).limit(100).then(function(r){reqs=r.data||[];renderReqs();focusReq()})}
 function badge(x){var m={pending:S.d_st_pending,accepted:S.d_st_accepted,declined:S.d_st_declined,cancelled:S.d_st_cancelled}[x.status];
   var b='<span class="badge '+x.status+'">'+m+'</span>';
@@ -49,9 +50,14 @@ function contact(x){var a=[];if(x.renter_phone){var p=x.renter_phone.replace(/[^
 function renderReqs(){var box=$('d-req-list'),n=reqs.filter(function(x){return x.status==='pending'}).length;$('d-req-count').textContent=n?'('+n+')':'';
   if(!reqs.length){box.innerHTML='<p class="small">'+S.d_req_none+'</p>';return}
   box.innerHTML=reqs.map(function(x){var title=t(x.listings&&x.listings.title);
-    var rows=[[S.m_dates,dmy(x.date_from)+' – '+dmy(x.date_to)+' ('+x.days+' '+S.d_days+')'],[S.f_mode,x.mode==='delivery'?S.d_deliv+(x.address?': '+x.address:''):S.d_pick]];
+    var rows=[[S.m_dates,dmy(x.date_from)+' – '+dmy(x.date_to)+' ('+x.days+' '+S.d_days+')'],
+      [S.f_mode,x.mode==='delivery'?S.d_deliv_km.replace('{km}',x.delivery_km)+(x.address?': '+x.address:''):x.mode==='meeting'?S.d_meet+': '+x.meeting_point:S.d_pick]];
+    if(x.pickup_time)rows.push([S.d_pickup_t,dmy(x.date_from)+' '+x.pickup_time]);
+    rows.push([S.d_return_t,S.m_return_v.replace('{date}',dmy(x.date_to)).replace('{time}',x.return_by||'18:00')]);
+    if(x.renter_phone)rows.push([S.f_phone||'☎',x.renter_phone]);
     if(x.size)rows.push([S.size,x.size]);if(x.message)rows.push(['💬',x.message]);
-    rows.push([S.d_you_get,fmt(x.subtotal)+' kr']);rows.push([S.d_total,fmt(x.total)+' kr']);if(x.deposit)rows.push([S.deposit,fmt(x.deposit)+' kr']);
+    rows.push([S.d_you_get,fmt(x.subtotal)+(x.delivery_price?' + '+fmt(x.delivery_price):'')+' kr']);rows.push([S.d_total,fmt(x.total)+' kr']);if(x.deposit)rows.push([S.d_dep_v,fmt(x.deposit)+' kr (Vipps)']);
+    if(x.rules_accepted_at)rows.push(['✓',S.d_rules_ok+' ('+x.rules_version+')']);
     var act='';
     if(x.status==='pending')act='<textarea id="n-'+x.id+'" rows="2" placeholder="'+esc(S.d_note_ph)+'"></textarea><div class="dla"><button class="btn sm" data-act="accept" data-id="'+x.id+'">✓ '+S.d_accept+'</button><button class="btn sm ghost2" data-act="decline" data-id="'+x.id+'">'+S.d_decline+'</button></div>';
     if(x.deposit_status==='authorized')act+='<button class="linkbtn" data-act="release" data-id="'+x.id+'">'+S.d_release+'</button>';
@@ -87,11 +93,35 @@ function openEdit(x){editing=x||null;x=x||{category:'ski',pickup:true,delivery:f
   document.querySelectorAll('#e-cloth input').forEach(function(c){c.checked=(x.clothing_sizes||[]).indexOf(c.value)>=0});
   var known=NK.places.some(function(p){return p[0]===x.place});$('e-place').value=known?x.place:(x.place?'__other':'');$('e-place2').value=known?'':(x.place||'');togPlace();
   gps=x.lat!=null&&!known?[x.lat,x.lng]:null;$('e-gps-ok').hidden=!gps;
-  $('e-pick').checked=!!x.pickup;$('e-deliv').checked=!!x.delivery;$('e-active').checked=x.active!==false;
+  $('e-deliv').checked=!!x.delivery;setv('e-dper',x.delivery_price_per_km);setv('e-dmax',x.delivery_max_km);setv('e-dmin',x.delivery_min_price);togDeliv();$('e-dl').open=!!x.delivery;
+  var w=x.pickup_windows||{weekday:{from:'16:00',to:'20:00'},weekend:{from:'10:00',to:'18:00'}};setWin('wd',w.weekday);setWin('we',w.weekend);setv('e-ret',x.return_by||'18:00');setv('e-note',x.handover_note);
+  var pv=editing&&priv[editing.id];setv('e-addr',pv&&pv.pickup_address);$('e-addr-approx').hidden=!(pv&&pv.address_is_approx);
+  mps=(x.meeting_points||[]).map(function(m){return{name:m.name,lat:m.lat,lng:m.lng}});mpActive=-1;renderMps();$('e-mp').open=mps.length>0;
+  $('e-active').checked=x.active!==false;
   $('e-del').hidden=!editing;photos=(x.photos||[]).map(function(p){return{path:p}});renderPhotos();
   $('e-sizes').open=!!(x.shoe_eu_min||x.ski_length_cm||x.fits_height_min||(x.clothing_sizes||[]).length);
   if(dlg.showModal)dlg.showModal();else dlg.setAttribute('open','')}
 function togPlace(){$('e-place2w').hidden=$('e-place').value!=='__other'}
+function togDeliv(){var on=$('e-deliv').checked;$('e-dlw').hidden=!on;$('e-dper').required=on;$('e-dmax').required=on}
+$('e-deliv').addEventListener('change',togDeliv);
+function setWin(k,w){$('e-'+k+'1').value=w?w.from:'';$('e-'+k+'2').value=w?w.to:'';$('e-'+k+'x').checked=!w}
+function getWin(k){if($('e-'+k+'x').checked)return null;var a=$('e-'+k+'1').value,b=$('e-'+k+'2').value;return a&&b&&b>a?{from:a,to:b}:null}
+$('e-presets').addEventListener('click',function(ev){var b=ev.target.closest('[data-pre]');if(!b)return;var p=b.getAttribute('data-pre').split('|');
+  setWin('wd',{from:p[0].split('-')[0],to:p[0].split('-')[1]});setWin('we',{from:p[1].split('-')[0],to:p[1].split('-')[1]})});
+var mpMap=null,mpLayer=null;
+function renderMps(){$('e-mps').innerHTML=mps.map(function(m,i){return '<div class="mp'+(i===mpActive?' on':'')+'"><input data-mpn="'+i+'" maxlength="80" placeholder="'+esc(S.f_meet_name)+'" value="'+esc(m.name)+'">'+
+  '<div class="dla"><button type="button" class="linkbtn" data-mpp="'+i+'">📍 '+(m.lat!=null?m.lat.toFixed(4)+', '+m.lng.toFixed(4):S.f_meet_pin)+'</button><button type="button" class="linkbtn danger" data-mpx="'+i+'">×</button></div></div>'}).join('');
+  $('e-mp-add').hidden=mps.length>=6;drawMpMap()}
+function drawMpMap(){var L=window.L,box=$('e-mpmap');if(!L)return;var show=mps.length>0;box.hidden=!show;$('e-mp-hint').hidden=!show;if(!show)return;
+  if(!mpMap){mpMap=L.map(box,{scrollWheelZoom:false}).setView([69.3,19.4],8);L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'&copy; OpenStreetMap'}).addTo(mpMap);mpLayer=L.layerGroup().addTo(mpMap);
+    mpMap.on('click',function(e){var i=mpActive>=0?mpActive:mps.length-1;if(i<0)return;mps[i].lat=Math.round(e.latlng.lat*1e4)/1e4;mps[i].lng=Math.round(e.latlng.lng*1e4)/1e4;renderMps()})}
+  mpLayer.clearLayers();var pts=[];mps.forEach(function(m,i){if(m.lat!=null){pts.push([m.lat,m.lng]);L.marker([m.lat,m.lng]).bindTooltip(m.name||String(i+1)).addTo(mpLayer)}});
+  setTimeout(function(){mpMap.invalidateSize();if(pts.length===1)mpMap.setView(pts[0],12);else if(pts.length>1)mpMap.fitBounds(pts,{padding:[20,20]})},60)}
+$('e-mp-add').addEventListener('click',function(){mps.push({name:'',lat:null,lng:null});mpActive=mps.length-1;renderMps();var q=document.querySelector('[data-mpn="'+mpActive+'"]');if(q)q.focus()});
+$('e-mps').addEventListener('input',function(ev){var i=ev.target.getAttribute('data-mpn');if(i!=null)mps[+i].name=ev.target.value});
+$('e-mps').addEventListener('click',function(ev){var p=ev.target.closest('[data-mpp]'),x=ev.target.closest('[data-mpx]');
+  if(p){mpActive=+p.getAttribute('data-mpp');renderMps()}if(x){mps.splice(+x.getAttribute('data-mpx'),1);mpActive=-1;renderMps()}});
+function geocode(q){if(!q)return Promise.resolve(null);return fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=no&q='+encodeURIComponent(q)).then(function(r){return r.json()}).then(function(a){return a&&a[0]?[+(+a[0].lat).toFixed(5),+(+a[0].lon).toFixed(5)]:null}).catch(function(){return null})}
 $('e-place').addEventListener('change',togPlace);
 var gps=null;
 $('e-gps').addEventListener('click',function(){if(!navigator.geolocation)return;navigator.geolocation.getCurrentPosition(function(p){gps=[Math.round(p.coords.latitude*100)/100,Math.round(p.coords.longitude*100)/100];$('e-gps-ok').hidden=false},function(){toast(S.f_err)},{maximumAge:6e5,timeout:15000})});
@@ -104,7 +134,7 @@ function uuid(){return (crypto.randomUUID&&crypto.randomUUID())||(Date.now().toS
 function uploadAll(){return Promise.all(photos.map(function(p){if(p.path)return p.path;return shrink(p.file).then(function(blob){var path=user.id+'/'+uuid()+'.jpg';
   return sb.storage.from('listing-photos').upload(path,blob,{contentType:'image/jpeg',cacheControl:'31536000',upsert:false}).then(function(r){if(r.error)throw r.error;return path})})}))}
 function num(id){var v=$(id).value;return v===''?null:+v}
-F.addEventListener('submit',function(e){e.preventDefault();if(!$('e-pick').checked&&!$('e-deliv').checked){$('e-pick').checked=true}
+F.addEventListener('submit',function(e){e.preventDefault();if(!F.checkValidity()){F.reportValidity();return}
   var btn=$('e-save');btn.disabled=true;btn.textContent=S.f_uploading;
   var pl=$('e-place').value==='__other'?$('e-place2').value.trim():$('e-place').value,pp=NK.places.filter(function(p){return p[0]===pl})[0];
   var lat=gps?gps[0]:(pp?pp[1]:null),lng=gps?gps[1]:(pp?pp[2]:null);
@@ -116,8 +146,15 @@ F.addEventListener('submit',function(e){e.preventDefault();if(!$('e-pick').check
   uploadAll().then(function(paths){
     var v={category:$('e-cat').value,source_lang:lang,title:tObj,description:dObj,price_per_day:num('e-price'),deposit:num('e-dep'),
       shoe_eu_min:s1,shoe_eu_max:s2,clothing_sizes:[].slice.call(document.querySelectorAll('#e-cloth input:checked')).map(function(c){return c.value}),
-      ski_length_cm:num('e-ski'),fits_height_min:h1,fits_height_max:h2||h1,place:pl||'Troms',lat:lat,lng:lng,pickup:$('e-pick').checked,delivery:$('e-deliv').checked,photos:paths,active:$('e-active').checked};
-    return editing?sb.from('listings').update(v).eq('id',editing.id):sb.from('listings').insert(Object.assign({owner_id:user.id},v))
+      ski_length_cm:num('e-ski'),fits_height_min:h1,fits_height_max:h2||h1,place:pl||'Troms',lat:lat,lng:lng,pickup:true,delivery:$('e-deliv').checked,photos:paths,active:$('e-active').checked,
+      delivery_price_per_km:$('e-deliv').checked?num('e-dper'):num('e-dper'),delivery_max_km:num('e-dmax'),delivery_min_price:num('e-dmin'),
+      meeting_points:mps.filter(function(m){return m.name.trim()&&m.lat!=null}).map(function(m){return{name:m.name.trim().slice(0,80),lat:m.lat,lng:m.lng}}),
+      pickup_windows:{weekday:getWin('wd'),weekend:getWin('we')},return_by:$('e-ret').value||'18:00',handover_note:$('e-note').value.trim()||null};
+    var q=editing?sb.from('listings').update(v).eq('id',editing.id).select('id').single():sb.from('listings').insert(Object.assign({owner_id:user.id},v)).select('id').single();
+    return q.then(function(r){if(r.error)throw r.error;var id=r.data.id,addr=$('e-addr').value.trim(),old=priv[id];
+      if(!addr&&!old)return r;if(old&&old.pickup_address===addr)return r;
+      return geocode(addr).then(function(g){var pv={listing_id:id,owner_id:user.id,pickup_address:addr||null,pickup_lat:g?g[0]:lat,pickup_lng:g?g[1]:lng,address_is_approx:!addr};
+        return sb.from('listing_private').upsert(pv,{onConflict:'listing_id'})})})
   }).then(function(r){if(r&&r.error)throw r.error;closeEdit();toast(S.d_saved);loadListings()}).catch(function(err){console.error(err);toast(S.f_err+(err&&err.message?' ('+err.message+')':''))})
   .then(function(){btn.disabled=false;btn.textContent=S.f_save})});
 $('e-del').addEventListener('click',function(){if(!editing||!confirm(S.d_conf_delete))return;

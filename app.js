@@ -33,8 +33,8 @@ function priceHtml(x){return x.price_per_day?('<div class="price">'+fmt(x.price_
 function card(x){
   var c=x.photo_credit,cr=c?(' · <a href="'+esc(c.source)+'" target="_blank" rel="noopener">'+esc(c.author)+', '+esc(c.license)+'</a>'):'';
   var img=x.photo?('<figure><img src="'+esc(x.photo)+'" alt="'+esc(t(x.title))+(x.photo_illustration?' ('+S.illus+')':'')+'" loading="lazy" width="800" height="600">'+(x.photo_illustration?'<figcaption>'+S.illus+cr+'</figcaption>':'')+'</figure>'):'';
-  var tags=sizeTags(x);if(x.pickup)tags.push(S.pickup);if(x.delivery)tags.push(S.delivery);if(x.size)tags.push(S.size+': '+esc(x.size));
-  tags.push(S.deposit+': '+(x.deposit?fmt(x.deposit)+' kr':S.deposit_none));
+  var tags=sizeTags(x);if(x.pickup!==false)tags.push(S.pickup+(S.m_free?' · '+S.m_free:''));if((x.meeting_points||[]).length)tags.push(S.m_opt_meet+': '+esc(x.meeting_points.map(function(m){return m.name}).join(', ')));if(x.delivery&&(x.delivery_price_per_km!=null||!NK.api))tags.push(S.delivery);if(x.size)tags.push(S.size+': '+esc(x.size));
+  tags.push(S.deposit+': '+(x.deposit?fmt(x.deposit)+' kr':(S.m_dep_none||S.deposit_none)));
   return '<article class="card" id="l-'+esc(x.id)+'">'+img+'<div class="b"><h3>'+esc(t(x.title))+'</h3><p class="meta">📍 '+esc(x.place)+' · '+NK.cats[x.category]+'</p>'+priceHtml(x)+'<p class="meta">'+esc(t(x.description))+'</p><div class="tags">'+tags.map(function(g){return'<span class="tag">'+g+'</span>'}).join('')+'</div><button class="btn sm rent" type="button" data-rent="'+esc(x.id)+'">'+S.rent_btn+'</button></div></article>';
 }
 function render(){
@@ -73,30 +73,80 @@ function prefillNeed(){var w=$('r-what'),c=$('r-cat'),s=$('r-item');if(s)s.selec
 /* ---------- rent sheet ---------- */
 var cur=null,dlg=$('rent');
 function fx(n){var r=NK.fx;return S.m_ca+' €'+fmt(n/r.EUR)+' · $'+fmt(n/r.USD)+' · ¥'+fmt(n/r.CNY)}
-function rcalc(){if(!cur)return;var a=$('m-from').value,b=$('m-to').value,o=$('m-total'),d=days(a,b),p=cur.price_per_day||0;
+var MODE='pickup',MEET=null,DEL={lat:null,lng:null,km:null,price:0,src:null,ok:false,busy:false};
+function hm(m){return ('0'+Math.floor(m/60)).slice(-2)+':'+('0'+m%60).slice(-2)}
+function mins(x){return +x.slice(0,2)*60+ +x.slice(3,5)}
+function slotsFor(w,date){if(!date)return null;w=w||{weekday:{from:'16:00',to:'20:00'},weekend:{from:'10:00',to:'18:00'}};var dd=new Date(date+'T12:00:00Z').getUTCDay(),x=((dd===0||dd===6)?w.weekend:w.weekday);
+  if(!x||!x.from||!x.to||mins(x.to)<=mins(x.from))return [];var a=mins(x.from),b=mins(x.to),o=[];for(var m=a;m<=b-60;m+=60)o.push(hm(m));return o.length?o:[x.from]}
+function dmyS(v){var p=v.split('-');return (+p[2])+'.'+(+p[1])+'.'}
+function slots(){var sel=$('m-slot');if(!sel||!cur)return;var a=$('m-from').value,keep=sel.value,l=slotsFor(cur.pickup_windows,a);
+  var none=$('m-slot-none');if(l===null){sel.innerHTML='<option value="">'+S.m_slot_pick+'</option>';none.hidden=true}
+  else if(!l.length){sel.innerHTML='<option value="">–</option>';none.hidden=false}
+  else{none.hidden=true;sel.innerHTML='<option value="">'+S.m_slot+' …</option>'+l.map(function(h){var e=hm(Math.min(mins(h)+60,24*60-1));return '<option value="'+h+'"'+(h===keep?' selected':'')+'>'+h+'–'+e+'</option>'}).join('')}
+  var b=$('m-to').value;$('m-ret').textContent=b?S.m_return_v.replace('{date}',dmyS(b)).replace('{time}',cur.return_by||'18:00'):'–'}
+function rcalc(){if(!cur)return;slots();var a=$('m-from').value,b=$('m-to').value,o=$('m-total'),d=days(a,b),p=cur.price_per_day||0;
   $('m-days').textContent=d?('= '+d+' '+S.m_days):'';
   if(!d||!p){o.innerHTML='<span class="small">'+S.fee_short+' (min. '+NK.feeMin+' kr)</span>';$('m-esth').value='';return}
-  var sub=p*d,f=fee(sub),tot=sub+f;
-  o.innerHTML='<div class="row"><span>'+S.m_rent+': '+d+' × '+fmt(p)+' kr</span><span>'+fmt(sub)+' kr</span></div><div class="row"><span>'+S.est_fee+' ('+NK.fee+' %, min. '+NK.feeMin+' kr)</span><span>'+fmt(f)+' kr</span></div><div class="row tot"><span>'+S.m_total+'</span><span>'+fmt(tot)+' kr</span></div><div class="small">'+fx(tot)+'</div>';
-  $('m-esth').value=tot+' NOK = '+d+' x '+p+' + fee '+f;$('m-daysh').value=d}
+  var sub=p*d,f=fee(sub),dp=MODE==='delivery'&&DEL.ok?DEL.price:0,tot=sub+f+dp;
+  o.innerHTML='<div class="row"><span>'+S.m_rent+': '+d+' × '+fmt(p)+' kr</span><span>'+fmt(sub)+' kr</span></div><div class="row"><span>'+S.est_fee+' ('+NK.fee+' %, min. '+NK.feeMin+' kr)</span><span>'+fmt(f)+' kr</span></div>'+
+    (MODE==='delivery'?'<div class="row"><span>'+S.m_deliv_line.replace('{km}',DEL.ok?String(DEL.km).replace('.',LG==='en'||LG==='zh'?'.':','):'?')+' <span class="small">('+S.m_deliv_owner+')</span></span><span>'+(DEL.ok?fmt(dp)+' kr':'–')+'</span></div>':'')+
+    '<div class="row tot"><span>'+S.m_total+'</span><span>'+fmt(tot)+' kr</span></div><div class="small">'+fx(tot)+'</div>'+
+    (cur.deposit?'<div class="row dep"><span>+ '+S.m_dep_line+'</span><span>'+fmt(cur.deposit)+' kr</span></div>':'');
+  $('m-esth').value=tot+' NOK = '+d+' x '+p+' + fee '+f+(dp?' + delivery '+dp+' ('+DEL.km+' km)':'');$('m-daysh').value=d}
+/* ---------- pickup / meeting point / delivery ---------- */
+function rate(x){var r=S.m_deliv_rate.replace('{per}',fmt(x.delivery_price_per_km)).replace('{max}',x.delivery_max_km);return x.delivery_min_price?r+', '+S.m_deliv_min.replace('{min}',fmt(x.delivery_min_price)):r}
+function renderModes(x){var h='<label class="opt1"><input type="radio" name="m_mode" value="pickup" checked><span><b>'+S.m_opt_pickup+'</b> · '+S.m_free+'<br><span class="small">📍 '+esc(x.place)+'</span></span></label>';
+  (x.meeting_points||[]).forEach(function(m,i){h+='<label class="opt1"><input type="radio" name="m_mode" value="meet:'+i+'"><span><b>'+S.m_opt_meet+':</b> '+esc(m.name)+' · '+S.m_free+'</span></label>'});
+  if(x.delivery&&x.delivery_price_per_km!=null&&x.delivery_max_km)h+='<label class="opt1"><input type="radio" name="m_mode" value="delivery"><span><b>'+S.m_opt_deliv+'</b><br><span class="small">'+rate(x)+'</span></span></label>';
+  $('m-modes').innerHTML=h;MODE='pickup';MEET=null;DEL={lat:null,lng:null,km:null,price:0,src:null,ok:false,busy:false};setMode()}
+function setMode(){var v=(document.querySelector('input[name=m_mode]:checked')||{}).value||'pickup';
+  MODE=v==='delivery'?'delivery':v.indexOf('meet:')===0?'meeting':'pickup';MEET=MODE==='meeting'?cur.meeting_points[+v.slice(5)]:null;
+  $('m-modeh').value=MODE==='delivery'?'Delivery':MODE==='meeting'?'Meeting point':'Pickup';$('m-meeth').value=MEET?MEET.name:'';
+  $('m-delw').hidden=MODE!=='delivery';$('m-addr').required=MODE==='delivery';if(MODE==='delivery')initDmap();rcalc()}
+var dmap=null,dmark=null,dcirc=null;
+function initDmap(){if(!LF)return;var c=[cur.lat,cur.lng];
+  if(!dmap){dmap=LF.map('m-dmap',{scrollWheelZoom:false});LF.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:17,attribution:'&copy; OpenStreetMap'}).addTo(dmap);
+    dmap.on('click',function(e){setPin(e.latlng.lat,e.latlng.lng)})}
+  if(dcirc)dmap.removeLayer(dcirc);if(dmark){dmap.removeLayer(dmark);dmark=null}
+  dcirc=LF.circle(c,{radius:cur.delivery_max_km*1000/1.3,color:'#0e7c86',weight:1,fillOpacity:.05,interactive:false}).addTo(dmap);
+  LF.circleMarker(c,{radius:7,color:'#0a5f67',fillColor:'#0e7c86',fillOpacity:1}).addTo(dmap);
+  setTimeout(function(){dmap.invalidateSize();dmap.fitBounds(dcirc.getBounds(),{padding:[4,4]})},60);$('m-dinfo').textContent=S.m_pin_hint;$('m-dinfo').className='small'}
+function hav(a,b){var R=6371,r=function(d){return d*Math.PI/180},dl=r(b[0]-a[0]),dn=r(b[1]-a[1]),h=Math.sin(dl/2)*Math.sin(dl/2)+Math.cos(r(a[0]))*Math.cos(r(b[0]))*Math.sin(dn/2)*Math.sin(dn/2);return 2*R*Math.asin(Math.sqrt(h))}
+function setPin(lat,lng,label){DEL.lat=Math.round(lat*1e5)/1e5;DEL.lng=Math.round(lng*1e5)/1e5;DEL.ok=false;DEL.busy=true;
+  if(dmark)dmark.setLatLng([lat,lng]);else{dmark=LF.marker([lat,lng],{draggable:true}).addTo(dmap);dmark.on('dragend',function(){var p=dmark.getLatLng();setPin(p.lat,p.lng)})}
+  if(label&&!$('m-addr').value)$('m-addr').value=label;
+  var info=$('m-dinfo');info.textContent=S.m_calc;info.className='small';rcalc();
+  var from=[cur.lat,cur.lng],to=[DEL.lat,DEL.lng];
+  fetch('https://router.project-osrm.org/route/v1/driving/'+from[1]+','+from[0]+';'+to[1]+','+to[0]+'?overview=false').then(function(r){return r.json()})
+  .then(function(j){if(j.code==='Ok'&&j.routes&&j.routes[0])return{km:Math.round(j.routes[0].distance/100)/10,src:'osrm'};throw 0})
+  .catch(function(){return{km:Math.round(hav(from,to)*1.3*10)/10,src:'straight'}})
+  .then(function(r){if(DEL.lat!==to[0]||DEL.lng!==to[1])return;DEL.busy=false;DEL.km=r.km;DEL.src=r.src;
+    if(r.km>cur.delivery_max_km){DEL.ok=false;info.textContent=S.m_too_far.replace('{km}',r.km).replace('{max}',cur.delivery_max_km);info.className='err'}
+    else{DEL.ok=true;DEL.price=Math.max(cur.delivery_min_price||0,Math.round(r.km*cur.delivery_price_per_km));
+      info.textContent=S.m_km.replace('{km}',r.km)+' = '+fmt(DEL.price)+' kr'+(r.src==='straight'?' ('+S.m_straight+')':'');info.className='small ok'}
+    $('m-dkmh').value=DEL.ok?DEL.km:'';$('m-dpriceh').value=DEL.ok?DEL.price:'';$('m-dposh').value=DEL.lat+','+DEL.lng;rcalc()})}
+function findAddr(){var q=$('m-addr').value.trim();if(!q)return;var info=$('m-dinfo');info.textContent=S.m_calc;
+  fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=no&accept-language='+LG+'&q='+encodeURIComponent(q)).then(function(r){return r.json()})
+  .then(function(a){if(!a.length){info.textContent=S.m_nores;info.className='err';return}var lat=+a[0].lat,lng=+a[0].lon;dmap.setView([lat,lng],13);setPin(lat,lng)})
+  .catch(function(){info.textContent=S.m_nores;info.className='err'})}
 function openRent(id){var x=byId[id];if(!x||!dlg)return;cur=x;
   $('m-h').textContent=t(x.title);$('m-sub').textContent=(x.price_per_day?fmt(x.price_per_day)+' '+S.per_day+' · ':'')+'📍 '+x.place;
   $('m-item').value=t(x.title)+' ['+x.id+']';$('m-id').value=x.id;
   var r=rng(x.shoe_eu);$('m-size').value=szText()||(r?'EU '+(r[0]===r[1]?r[0]:r[0]+'–'+r[1]):'');
-  $('m-deliv').parentNode.style.display=x.delivery?'':'none';if(!x.delivery){$('m-pick').checked=true}
-  togAddr();rcalc();t0=Date.now();var me=$('m-err');if(me)me.hidden=true;
+  renderModes(x);rcalc();t0=Date.now();var me=$('m-err');if(me)me.hidden=true;
   if(dlg.showModal){dlg.showModal()}else{dlg.setAttribute('open','')}
   setTimeout(function(){if(!$('m-from').value)$('m-from').focus()},50)}
-function togAddr(){var d=$('m-deliv').checked,w=$('m-addrw');w.style.display=d?'':'none';$('m-addr').required=d}
 function closeRent(){if(dlg.close)dlg.close();else dlg.removeAttribute('open')}
 if(dlg){
   $('m-x').addEventListener('click',closeRent);
   dlg.addEventListener('click',function(e){if(e.target===dlg)closeRent()});
   ['m-from','m-to'].forEach(function(i){$(i).addEventListener('change',function(){if(i==='m-from'){$('m-to').min=$('m-from').value;if($('m-to').value&&$('m-to').value<=$('m-from').value)$('m-to').value=''}rcalc()})});
-  $('m-pick').addEventListener('change',togAddr);$('m-deliv').addEventListener('change',togAddr);
-  var em=$('m-email'),ph=$('m-phone');function cv(){var ok=em.value.trim()||ph.value.trim();em.setCustomValidity(ok?'':S.m_contact_err)}
-  em.addEventListener('input',cv);ph.addEventListener('input',cv);
+  $('m-modes').addEventListener('change',setMode);$('m-find').addEventListener('click',findAddr);
+  $('m-addr').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();findAddr()}});
+  var ph=$('m-phone'),ru=$('m-rules'),sl=$('m-slot');function cv(){ph.setCustomValidity(/^[+\d][\d\s().-]{5,}$/.test(ph.value.trim())?'':S.b_phone);ru.setCustomValidity(ru.checked?'':S.m_rules_err);sl.setCustomValidity(sl.value?'':S.b_slot)}
+  ph.addEventListener('input',cv);ru.addEventListener('change',cv);sl.addEventListener('change',cv);
   $('m-form').addEventListener('submit',function(e){cv();if(!this.checkValidity()){e.preventDefault();this.reportValidity();return}
+    if(MODE==='delivery'&&!DEL.ok){e.preventDefault();var di=$('m-dinfo');if(!DEL.busy&&DEL.km==null){di.textContent=S.m_need_pin;di.className='err'}di.scrollIntoView({block:'center'});return}
     rcalc();var d=days($('m-from').value,$('m-to').value);
     if(NK.api&&cur&&cur.uuid&&!this._fallback){e.preventDefault();apiSubmit(this);return}});
 }
@@ -104,7 +154,8 @@ if(dlg){
 var t0=0;
 function apiSubmit(f){var btn=f.querySelector('button[type=submit]'),lbl=btn.textContent,err=$('m-err');btn.disabled=true;btn.textContent=S.b_sending;if(err)err.hidden=true;
   var body={listing_id:cur.uuid,date_from:$('m-from').value,date_to:$('m-to').value,name:$('m-name').value,email:$('m-email').value,phone:$('m-phone').value,
-    mode:$('m-deliv').checked?'delivery':'pickup',address:$('m-addr').value,size:$('m-size').value,message:$('m-msg').value,language:LG,
+    pickup_time:$('m-slot').value,rules_accepted:$('m-rules').checked,rules_version:NK.rulesVersion,mode:MODE,meeting_point:MEET?MEET.name:null,delivery_lat:MODE==='delivery'?DEL.lat:null,delivery_lng:MODE==='delivery'?DEL.lng:null,delivery_price:MODE==='delivery'?DEL.price:null,
+    address:MODE==='delivery'?$('m-addr').value:'',size:$('m-size').value,message:$('m-msg').value,language:LG,
     website:(f.querySelector('[name=_honey]')||{}).value||'',t_ms:Date.now()-t0};
   function fallback(){f._fallback=true;btn.disabled=false;btn.textContent=lbl;HTMLFormElement.prototype.submit.call(f)}
   fetch(NK.api.url+'/functions/v1/create-request',{method:'POST',headers:{'Content-Type':'application/json',apikey:NK.api.key},body:JSON.stringify(body)})
@@ -112,14 +163,17 @@ function apiSubmit(f){var btn=f.querySelector('button[type=submit]'),lbl=btn.tex
     if(r.ok&&j.ok){location.href=NK.thanksUrl+'?r=1';return}
     if(r.status>=500||r.status===0){fallback();return}
     btn.disabled=false;btn.textContent=lbl;
-    var m=r.status===429?S.b_rate:(r.status===404||j.error==='listing_unavailable')?S.b_unavail:S.b_invalid;
+    if(j.error==='price_changed'&&j.delivery_price!=null){DEL.km=j.km;DEL.price=j.delivery_price;rcalc();}
+    var m=r.status===429?S.b_rate:(r.status===404||j.error==='listing_unavailable')?S.b_unavail:j.error==='too_far'?S.m_too_far.replace('{km}',j.km).replace('{max}',j.max_km):j.error==='price_changed'?S.m_price_changed:(j.fields||[]).indexOf('phone')>=0?S.b_phone:(j.fields||[]).indexOf('pickup_time')>=0?S.b_slot:(j.fields||[]).indexOf('rules')>=0?S.m_rules_err:S.b_invalid;
+    if(j.error==='invalid'&&(j.fields||[]).indexOf('pickup_time')>=0)slots();
     if(err){err.textContent=m;err.hidden=false}else alert(m)})}).catch(fallback)}
 function fromRow(x){var p=x.photos&&x.photos[0];return{id:x.slug||x.id,uuid:x.id,category:x.category,title:x.title,description:x.description,
   price_per_day:x.price_per_day,deposit:x.deposit,place:x.place,lat:x.lat,lng:x.lng,pickup:x.pickup,delivery:x.delivery,
   photo:p?(/^(https?:)?\//.test(p)?p:NK.api.url+'/storage/v1/object/public/listing-photos/'+p):null,photo_illustration:x.photo_illustration,photo_credit:x.photo_credit,
   shoe_eu:x.shoe_eu_min!=null?[+x.shoe_eu_min,+(x.shoe_eu_max!=null?x.shoe_eu_max:x.shoe_eu_min)]:null,clothing_size:x.clothing_sizes&&x.clothing_sizes.length?x.clothing_sizes:null,
+  meeting_points:x.meeting_points||[],pickup_windows:x.pickup_windows||null,return_by:x.return_by||'18:00',handover_note:x.handover_note||null,delivery_price_per_km:x.delivery_price_per_km!=null?+x.delivery_price_per_km:null,delivery_max_km:x.delivery_max_km,delivery_min_price:x.delivery_min_price,
   ski_length_cm:x.ski_length_cm,fits_height_cm:x.fits_height_min!=null?[x.fits_height_min,x.fits_height_max!=null?x.fits_height_max:x.fits_height_min]:null}}
-var COLS='id,slug,category,title,description,price_per_day,deposit,shoe_eu_min,shoe_eu_max,clothing_sizes,ski_length_cm,fits_height_min,fits_height_max,place,lat,lng,pickup,delivery,photos,photo_illustration,photo_credit';
+var COLS='id,slug,category,title,description,price_per_day,deposit,shoe_eu_min,shoe_eu_max,clothing_sizes,ski_length_cm,fits_height_min,fits_height_max,place,lat,lng,pickup,delivery,photos,photo_illustration,photo_credit,meeting_points,delivery_price_per_km,delivery_max_km,delivery_min_price,pickup_windows,return_by,handover_note';
 function loadListings(){var stat=function(){return fetch('/listings.json',{cache:'no-cache'}).then(function(r){return r.json()}).then(function(d){return d.listings||[]})};
   if(!NK.api)return stat();
   return fetch(NK.api.url+'/rest/v1/listings?select='+COLS+'&active=eq.true&order=created_at.asc',{headers:{apikey:NK.api.key}})

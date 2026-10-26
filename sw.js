@@ -1,5 +1,5 @@
 
-const V='nk-7',SHELL=["/no/", "/", "/de/", "/zh/", "/no/takk/", "/thanks/", "/de/danke/", "/zh/thanks/", "/no/mine/", "/my/", "/de/meine/", "/zh/my/", "/dash.js?v=7", "/style.css?v=7", "/app.js?v=7", "/favicon.svg", "/icons/icon-192.png", "/img/cross-country-skis.webp", "/img/snowshoes.webp", "/img/touring-skis.webp"];
+const V='nk-8',SHELL=["/no/", "/", "/de/", "/zh/", "/no/takk/", "/thanks/", "/de/danke/", "/zh/thanks/", "/no/mine/", "/my/", "/de/meine/", "/zh/my/", "/dash.js?v=8", "/style.css?v=8", "/app.js?v=8", "/favicon.svg", "/icons/icon-192.png", "/img/cross-country-skis.webp", "/img/snowshoes.webp", "/img/touring-skis.webp"];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==V).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
 function netFirst(req){return fetch(req).then(r=>{if(r&&r.ok){const c=r.clone();caches.open(V).then(x=>x.put(req,c))}return r}).catch(()=>caches.match(req,{ignoreSearch:true}).then(r=>r||caches.match('/')))}

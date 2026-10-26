@@ -3,7 +3,8 @@
 
 - Owners list for free (0% fee). Renters pay a 15% service fee on top of the owner's price (minimum 49 NOK per booking).
 - Booking is request-based: send a request on the site, the owner confirms, then total price and payment details are sent by email. No payment on the website yet.
-- No insurance or payment guarantee; deposit and damage are agreed between owner and renter.
+- NordKiln is a marketplace; the rental agreement is between owner and renter. Rental rules (deposit, return deadline, late return, damage, cancellation): https://nordkiln.dev/rules/
+- Pickup at the owner is free; owners may add free meeting points and optional delivery priced per km (one way).
 - Languages: English (https://nordkiln.dev/), Norwegian (https://nordkiln.dev/no/), German (https://nordkiln.dev/de/), Simplified Chinese (https://nordkiln.dev/zh/).
 - Size search: shoe size (EU, with UK/US/CN hints), clothing size, body height. Listings carry shoe_eu, clothing_size, ski_length_cm, fits_height_cm.
 - Contact: scan.nordkiln@mail.grokbot.com
