@@ -29,7 +29,7 @@ function initSize(){var a=$('sz-shoe'),b=$('sz-cloth'),c=$('sz-height'),z=$('sz-
   a.addEventListener('change',upd);b.addEventListener('change',upd);c.addEventListener('input',upd);
   z.addEventListener('click',function(){a.value=b.value=c.value='';upd()})}
 /* ---------- cards + map ---------- */
-function priceHtml(x){return x.price_per_day?('<div class="price">'+fmt(x.price_per_day)+' <small>'+S.per_day+'</small></div><div class="small">'+S.fee_short+' (min. '+NK.feeMin+' kr)</div>'):'<div class="price"><small>'+S.price_ask+'</small></div>'}
+function priceHtml(x){return x.price_per_day?('<div class="price">'+fmt(x.price_per_day)+' <small>'+S.per_day+'</small></div>'):'<div class="price"><small>'+S.price_ask+'</small></div>'}
 function card(x){
   var c=x.photo_credit,cr=c?(' · <a href="'+esc(c.source)+'" target="_blank" rel="noopener">'+esc(c.author)+', '+esc(c.license)+'</a>'):'';
   var img=x.photo?('<figure><img src="'+esc(x.photo)+'" alt="'+esc(t(x.title))+(x.photo_illustration?' ('+S.illus+')':'')+'" loading="lazy" width="800" height="600">'+(x.photo_illustration?'<figcaption>'+S.illus+cr+'</figcaption>':'')+'</figure>'):'';
@@ -49,7 +49,7 @@ function render(){
     sel.forEach(function(x){if(x.lat==null||x.lng==null)return;var k=x.lat.toFixed(3)+','+x.lng.toFixed(3);(g[k]=g[k]||[]).push(x)});
     Object.keys(g).forEach(function(k){var xs=g[k],p=xs[0];
       var m=LF.circleMarker([p.lat,p.lng],{radius:9+Math.min(xs.length,5),color:'#0a5f67',weight:3,fillColor:'#0e7c86',fillOpacity:.85});
-      m.bindPopup('<div class="pop"><b>📍 '+esc(p.place)+'</b>'+xs.map(function(x){return'<div style="margin-top:6px"><b>'+esc(t(x.title))+'</b><br>'+(x.price_per_day?fmt(x.price_per_day)+' '+S.per_day+' '+S.fee_short:S.price_ask)+'<br><a href="#" data-rent="'+esc(x.id)+'">'+S.rent_btn+' →</a></div>'}).join('')+'</div>');
+      m.bindPopup('<div class="pop"><b>📍 '+esc(p.place)+'</b>'+xs.map(function(x){return'<div style="margin-top:6px"><b>'+esc(t(x.title))+'</b><br>'+(x.price_per_day?fmt(x.price_per_day)+' '+S.per_day:S.price_ask)+'<br><a href="#" data-rent="'+esc(x.id)+'">'+S.rent_btn+' →</a></div>'}).join('')+'</div>');
       if(xs.length>1)m.bindTooltip(String(xs.length),{permanent:true,direction:'center',className:'cnt'});layer.addLayer(m);});
   }
 }
@@ -86,12 +86,14 @@ function slots(){var sel=$('m-slot');if(!sel||!cur)return;var a=$('m-from').valu
   var b=$('m-to').value;$('m-ret').textContent=b?S.m_return_v.replace('{date}',dmyS(b)).replace('{time}',cur.return_by||'18:00'):'–'}
 function rcalc(){if(!cur)return;slots();var a=$('m-from').value,b=$('m-to').value,o=$('m-total'),d=days(a,b),p=cur.price_per_day||0;
   $('m-days').textContent=d?('= '+d+' '+S.m_days):'';
-  if(!d||!p){o.innerHTML='<span class="small">'+S.fee_short+' (min. '+NK.feeMin+' kr)</span>';$('m-esth').value='';return}
+  var t2=$('m-total2');
+  if(!d||!p){o.innerHTML='<span class="small">'+S.m_pick_dates+'</span>';$('m-esth').value='';if(t2)t2.innerHTML='';return}
   var sub=p*d,f=fee(sub),dp=MODE==='delivery'&&DEL.ok?DEL.price:0,tot=sub+f+dp;
-  o.innerHTML='<div class="row"><span>'+S.m_rent+': '+d+' × '+fmt(p)+' kr</span><span>'+fmt(sub)+' kr</span></div><div class="row"><span>'+S.est_fee+' ('+NK.fee+' %, min. '+NK.feeMin+' kr)</span><span>'+fmt(f)+' kr</span></div>'+
+  o.innerHTML='<div class="row"><span>'+S.m_rent+': '+d+' × '+fmt(p)+' kr</span><span>'+fmt(sub)+' kr</span></div><div class="row"><span>'+S.est_fee.charAt(0).toUpperCase()+S.est_fee.slice(1)+'</span><span>'+fmt(f)+' kr</span></div>'+
     (MODE==='delivery'?'<div class="row"><span>'+S.m_deliv_line.replace('{km}',DEL.ok?String(DEL.km).replace('.',LG==='en'||LG==='zh'?'.':','):'?')+' <span class="small">('+S.m_deliv_owner+')</span></span><span>'+(DEL.ok?fmt(dp)+' kr':'–')+'</span></div>':'')+
     '<div class="row tot"><span>'+S.m_total+'</span><span>'+fmt(tot)+' kr</span></div><div class="small">'+fx(tot)+'</div>'+
     (cur.deposit?'<div class="row dep"><span>+ '+S.m_dep_line+'</span><span>'+fmt(cur.deposit)+' kr</span></div>':'');
+  if(t2)t2.innerHTML='<span>'+S.m_total+'</span><span>'+fmt(tot)+' kr'+(cur.deposit?' <small>+ '+S.deposit+' '+fmt(cur.deposit)+' kr</small>':'')+'</span>';
   $('m-esth').value=tot+' NOK = '+d+' x '+p+' + fee '+f+(dp?' + delivery '+dp+' ('+DEL.km+' km)':'');$('m-daysh').value=d}
 /* ---------- pickup / meeting point / delivery ---------- */
 function rate(x){var r=S.m_deliv_rate.replace('{per}',fmt(x.delivery_price_per_km)).replace('{max}',x.delivery_max_km);return x.delivery_min_price?r+', '+S.m_deliv_min.replace('{min}',fmt(x.delivery_min_price)):r}
@@ -129,7 +131,31 @@ function findAddr(){var q=$('m-addr').value.trim();if(!q)return;var info=$('m-di
   fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=no&accept-language='+LG+'&q='+encodeURIComponent(q)).then(function(r){return r.json()})
   .then(function(a){if(!a.length){info.textContent=S.m_nores;info.className='err';return}var lat=+a[0].lat,lng=+a[0].lon;dmap.setView([lat,lng],13);setPin(lat,lng)})
   .catch(function(){info.textContent=S.m_nores;info.className='err'})}
+/* ---------- availability calendar ---------- */
+var BUSY=[];
+function iso(d){return d.getUTCFullYear()+'-'+('0'+(d.getUTCMonth()+1)).slice(-2)+'-'+('0'+d.getUTCDate()).slice(-2)}
+function addD(v,n){var d=new Date(v+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+n);return iso(d)}
+function isBusy(v){return BUSY.some(function(b){return v>=b.date_from&&v<=b.date_to})}
+function rangeBusy(a,b){return BUSY.some(function(x){return a<=x.date_to&&b>=x.date_from})}
+function loadBusy(x){BUSY=[];renderCal();if(!NK.api||!x.uuid)return;
+  fetch(NK.api.url+'/rest/v1/rpc/listing_busy',{method:'POST',headers:{apikey:NK.api.key,'Content-Type':'application/json'},body:JSON.stringify({p_listing:x.uuid})})
+  .then(function(r){return r.ok?r.json():[]}).then(function(b){if(cur!==x)return;BUSY=b||[];renderCal();checkTaken()}).catch(function(){})}
+function checkTaken(){var a=$('m-from').value,b=$('m-to').value,bad=!!(a&&b&&rangeBusy(a,b))||!!(a&&!b&&isBusy(a));$('m-taken').hidden=!bad;$('m-to').setCustomValidity(bad?S.m_taken:'');return !bad}
+function renderCal(){var box=$('m-cal');if(!box)return;var a=$('m-from').value,b=$('m-to').value,td=new Date().toISOString().slice(0,10);
+  var base=new Date((a||td).slice(0,7)+'-01T00:00:00Z'),h='',loc={no:'nb-NO',de:'de-DE',zh:'zh-CN',en:'en-GB'}[LG]||'en-GB';
+  var wd=[];for(var i=0;i<7;i++){wd.push(new Date(Date.UTC(2024,0,1+i)).toLocaleDateString(loc,{weekday:'narrow',timeZone:'UTC'}))}
+  for(var m=0;m<2;m++){var first=new Date(Date.UTC(base.getUTCFullYear(),base.getUTCMonth()+m,1));
+    h+='<div class="mh">'+first.toLocaleDateString(loc,{month:'long',year:'numeric',timeZone:'UTC'})+'</div>'+wd.map(function(w){return '<div class="wd">'+w+'</div>'}).join('');
+    var pad=(first.getUTCDay()+6)%7;for(var k=0;k<pad;k++)h+='<div></div>';
+    var n=new Date(Date.UTC(first.getUTCFullYear(),first.getUTCMonth()+1,0)).getUTCDate();
+    for(var dd=1;dd<=n;dd++){var v=iso(new Date(Date.UTC(first.getUTCFullYear(),first.getUTCMonth(),dd))),bz=isBusy(v),past=v<td;
+      var c=(v===a||v===b)?'sel':(a&&b&&v>a&&v<b)?'in':'';h+='<button type="button" data-d="'+v+'" class="'+c+(bz?' busy':'')+'"'+(bz||past?' disabled':'')+(bz?' title="'+S.m_booked+'"':'')+'>'+dd+'</button>'}}
+  if(BUSY.length)h+='<div class="lg"><s>12</s> = '+S.m_booked+'</div>';box.innerHTML=h}
+function calClick(ev){var bt=ev.target.closest('button[data-d]');if(!bt||bt.disabled)return;var v=bt.getAttribute('data-d'),f=$('m-from'),t=$('m-to');
+  if(!f.value||t.value||v<=f.value){f.value=v;t.value='';t.min=v}else{t.value=v}
+  rcalc();renderCal();checkTaken()}
 function openRent(id){var x=byId[id];if(!x||!dlg)return;cur=x;
+  $('m-form').hidden=false;$('m-ok').hidden=true;var ins=x.instant_book!==false;$('m-inst').hidden=!ins;$('m-send').textContent=ins?S.m_send:S.m_send_req;$('m-note').textContent=ins?S.m_note:S.m_note_req;loadBusy(x);
   $('m-h').textContent=t(x.title);$('m-sub').textContent=(x.price_per_day?fmt(x.price_per_day)+' '+S.per_day+' · ':'')+'📍 '+x.place;
   $('m-item').value=t(x.title)+' ['+x.id+']';$('m-id').value=x.id;
   var r=rng(x.shoe_eu);$('m-size').value=szText()||(r?'EU '+(r[0]===r[1]?r[0]:r[0]+'–'+r[1]):'');
@@ -140,12 +166,13 @@ function closeRent(){if(dlg.close)dlg.close();else dlg.removeAttribute('open')}
 if(dlg){
   $('m-x').addEventListener('click',closeRent);
   dlg.addEventListener('click',function(e){if(e.target===dlg)closeRent()});
-  ['m-from','m-to'].forEach(function(i){$(i).addEventListener('change',function(){if(i==='m-from'){$('m-to').min=$('m-from').value;if($('m-to').value&&$('m-to').value<=$('m-from').value)$('m-to').value=''}rcalc()})});
+  ['m-from','m-to'].forEach(function(i){$(i).addEventListener('change',function(){if(i==='m-from'){$('m-to').min=$('m-from').value;if($('m-to').value&&$('m-to').value<=$('m-from').value)$('m-to').value=''}rcalc();renderCal();checkTaken()})});
+  $('m-cal').addEventListener('click',calClick);
   $('m-modes').addEventListener('change',setMode);$('m-find').addEventListener('click',findAddr);
   $('m-addr').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();findAddr()}});
   var ph=$('m-phone'),ru=$('m-rules'),sl=$('m-slot');function cv(){ph.setCustomValidity(/^[+\d][\d\s().-]{5,}$/.test(ph.value.trim())?'':S.b_phone);ru.setCustomValidity(ru.checked?'':S.m_rules_err);sl.setCustomValidity(sl.value?'':S.b_slot)}
   ph.addEventListener('input',cv);ru.addEventListener('change',cv);sl.addEventListener('change',cv);
-  $('m-form').addEventListener('submit',function(e){cv();if(!this.checkValidity()){e.preventDefault();this.reportValidity();return}
+  $('m-form').addEventListener('submit',function(e){cv();checkTaken();if(!this.checkValidity()){e.preventDefault();this.reportValidity();return}
     if(MODE==='delivery'&&!DEL.ok){e.preventDefault();var di=$('m-dinfo');if(!DEL.busy&&DEL.km==null){di.textContent=S.m_need_pin;di.className='err'}di.scrollIntoView({block:'center'});return}
     rcalc();var d=days($('m-from').value,$('m-to').value);
     if(NK.api&&cur&&cur.uuid&&!this._fallback){e.preventDefault();apiSubmit(this);return}});
@@ -160,20 +187,31 @@ function apiSubmit(f){var btn=f.querySelector('button[type=submit]'),lbl=btn.tex
   function fallback(){f._fallback=true;btn.disabled=false;btn.textContent=lbl;HTMLFormElement.prototype.submit.call(f)}
   fetch(NK.api.url+'/functions/v1/create-request',{method:'POST',headers:{'Content-Type':'application/json',apikey:NK.api.key},body:JSON.stringify(body)})
   .then(function(r){return r.json().catch(function(){return{}}).then(function(j){
-    if(r.ok&&j.ok){location.href=NK.thanksUrl+'?r=1';return}
+    if(r.ok&&j.ok){showOk(j);return}
     if(r.status>=500||r.status===0){fallback();return}
     btn.disabled=false;btn.textContent=lbl;
     if(j.error==='price_changed'&&j.delivery_price!=null){DEL.km=j.km;DEL.price=j.delivery_price;rcalc();}
-    var m=r.status===429?S.b_rate:(r.status===404||j.error==='listing_unavailable')?S.b_unavail:j.error==='too_far'?S.m_too_far.replace('{km}',j.km).replace('{max}',j.max_km):j.error==='price_changed'?S.m_price_changed:(j.fields||[]).indexOf('phone')>=0?S.b_phone:(j.fields||[]).indexOf('pickup_time')>=0?S.b_slot:(j.fields||[]).indexOf('rules')>=0?S.m_rules_err:S.b_invalid;
+    if(j.error==='dates_taken'){loadBusy(cur);$('m-taken').hidden=false;$('m-taken').scrollIntoView({block:'center'})}
+    var m=j.error==='dates_taken'?S.m_taken:r.status===429?S.b_rate:(r.status===404||j.error==='listing_unavailable')?S.b_unavail:j.error==='too_far'?S.m_too_far.replace('{km}',j.km).replace('{max}',j.max_km):j.error==='price_changed'?S.m_price_changed:(j.fields||[]).indexOf('phone')>=0?S.b_phone:(j.fields||[]).indexOf('pickup_time')>=0?S.b_slot:(j.fields||[]).indexOf('rules')>=0?S.m_rules_err:S.b_invalid;
     if(j.error==='invalid'&&(j.fields||[]).indexOf('pickup_time')>=0)slots();
     if(err){err.textContent=m;err.hidden=false}else alert(m)})}).catch(fallback)}
+function showOk(j){var o=$('m-ok'),f=$('m-form');
+  function row(k,v){return v?'<dt>'+esc(k)+'</dt><dd>'+v+'</dd>':''}
+  if(j.instant){var ow=j.owner||{},ct=ow.phone?'<a href="tel:'+esc(ow.phone.replace(/[^\d+]/g,''))+'">'+esc(ow.phone)+'</a>':ow.email?'<a href="mailto:'+esc(ow.email)+'">'+esc(ow.email)+'</a>':'';
+    o.innerHTML='<h2>✅ '+S.ok_h+'</h2><p><b>'+esc(t(cur.title))+'</b> · '+dmyS(j.date_from)+'–'+dmyS(j.date_to)+'</p><dl>'+
+      row(S.ok_where,esc(j.place||'')+(j.map?' · <a href="'+esc(j.map)+'" target="_blank" rel="noopener">'+S.ok_map+'</a>':'')+(j.approx&&j.mode==='pickup'?'<br><span class="small">'+S.ok_approx+'</span>':''))+
+      row(S.ok_time,dmyS(j.date_from)+' '+esc(j.pickup_time||''))+row(S.ok_ret,S.m_return_v.replace('{date}',dmyS(j.date_to)).replace('{time}',esc(j.return_by||'18:00')))+
+      row(S.ok_owner,esc(ow.name||'')+(ct?'<br>'+ct:''))+row(S.ok_total,'<span class="big">'+fmt(j.total)+' kr</span>')+(j.deposit?row(S.ok_dep,fmt(j.deposit)+' kr'):'')+
+      '</dl><p class="small">'+(j.mailed?S.ok_mail:'')+'</p><button type="button" class="btn wide" id="m-okx">'+S.ok_done+'</button>'}
+  else o.innerHTML='<h2>📨 '+S.ok_req_h+'</h2><p>'+S.ok_req_p+'</p><p><b>'+S.ok_total+':</b> '+fmt(j.total)+' kr</p><button type="button" class="btn wide" id="m-okx">'+S.ok_done+'</button>';
+  f.hidden=true;o.hidden=false;dlg.scrollTop=0;$('m-okx').addEventListener('click',closeRent);if(j.instant)loadBusy(cur)}
 function fromRow(x){var p=x.photos&&x.photos[0];return{id:x.slug||x.id,uuid:x.id,category:x.category,title:x.title,description:x.description,
   price_per_day:x.price_per_day,deposit:x.deposit,place:x.place,lat:x.lat,lng:x.lng,pickup:x.pickup,delivery:x.delivery,
   photo:p?(/^(https?:)?\//.test(p)?p:NK.api.url+'/storage/v1/object/public/listing-photos/'+p):null,photo_illustration:x.photo_illustration,photo_credit:x.photo_credit,
   shoe_eu:x.shoe_eu_min!=null?[+x.shoe_eu_min,+(x.shoe_eu_max!=null?x.shoe_eu_max:x.shoe_eu_min)]:null,clothing_size:x.clothing_sizes&&x.clothing_sizes.length?x.clothing_sizes:null,
-  meeting_points:x.meeting_points||[],pickup_windows:x.pickup_windows||null,return_by:x.return_by||'18:00',handover_note:x.handover_note||null,delivery_price_per_km:x.delivery_price_per_km!=null?+x.delivery_price_per_km:null,delivery_max_km:x.delivery_max_km,delivery_min_price:x.delivery_min_price,
+  meeting_points:x.meeting_points||[],pickup_windows:x.pickup_windows||null,instant_book:x.instant_book!==false,return_by:x.return_by||'18:00',handover_note:x.handover_note||null,delivery_price_per_km:x.delivery_price_per_km!=null?+x.delivery_price_per_km:null,delivery_max_km:x.delivery_max_km,delivery_min_price:x.delivery_min_price,
   ski_length_cm:x.ski_length_cm,fits_height_cm:x.fits_height_min!=null?[x.fits_height_min,x.fits_height_max!=null?x.fits_height_max:x.fits_height_min]:null}}
-var COLS='id,slug,category,title,description,price_per_day,deposit,shoe_eu_min,shoe_eu_max,clothing_sizes,ski_length_cm,fits_height_min,fits_height_max,place,lat,lng,pickup,delivery,photos,photo_illustration,photo_credit,meeting_points,delivery_price_per_km,delivery_max_km,delivery_min_price,pickup_windows,return_by,handover_note';
+var COLS='id,slug,category,title,description,price_per_day,deposit,shoe_eu_min,shoe_eu_max,clothing_sizes,ski_length_cm,fits_height_min,fits_height_max,place,lat,lng,pickup,delivery,photos,photo_illustration,photo_credit,meeting_points,delivery_price_per_km,delivery_max_km,delivery_min_price,pickup_windows,return_by,handover_note,instant_book';
 function loadListings(){var stat=function(){return fetch('/listings.json',{cache:'no-cache'}).then(function(r){return r.json()}).then(function(d){return d.listings||[]})};
   if(!NK.api)return stat();
   return fetch(NK.api.url+'/rest/v1/listings?select='+COLS+'&active=eq.true&order=created_at.asc',{headers:{apikey:NK.api.key}})

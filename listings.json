@@ -19,11 +19,11 @@
       "size": null,
       "price_per_day": 450,
       "deposit": null,
-      "place": "Balsfjord",
-      "lat": 69.2408,
-      "lng": 19.2336,
+      "place": "Seljelvnes, Balsfjord",
+      "lat": 69.2684,
+      "lng": 19.4141,
       "pickup": true,
-      "delivery": true,
+      "delivery": false,
       "photo": "/img/touring-skis.webp",
       "photo_illustration": true,
       "photo_credit": {
@@ -35,7 +35,14 @@
       "shoe_eu": 42,
       "clothing_size": null,
       "ski_length_cm": null,
-      "fits_height_cm": null
+      "fits_height_cm": null,
+      "meeting_points": [
+        {
+          "name": "Coop Extra Nordkjosbotn (parkeringsplassen)",
+          "lat": 69.2181,
+          "lng": 19.5569
+        }
+      ]
     },
     {
       "id": "cross-country-skis",
@@ -55,11 +62,11 @@
       "size": null,
       "price_per_day": 250,
       "deposit": null,
-      "place": "Balsfjord",
-      "lat": 69.2408,
-      "lng": 19.2336,
+      "place": "Seljelvnes, Balsfjord",
+      "lat": 69.2684,
+      "lng": 19.4141,
       "pickup": true,
-      "delivery": true,
+      "delivery": false,
       "photo": "/img/cross-country-skis.webp",
       "photo_illustration": true,
       "photo_credit": {
@@ -71,7 +78,14 @@
       "shoe_eu": 42,
       "clothing_size": null,
       "ski_length_cm": null,
-      "fits_height_cm": null
+      "fits_height_cm": null,
+      "meeting_points": [
+        {
+          "name": "Coop Extra Nordkjosbotn (parkeringsplassen)",
+          "lat": 69.2181,
+          "lng": 19.5569
+        }
+      ]
     },
     {
       "id": "snowshoes",
@@ -91,11 +105,11 @@
       "size": null,
       "price_per_day": 150,
       "deposit": null,
-      "place": "Balsfjord",
-      "lat": 69.2408,
-      "lng": 19.2336,
+      "place": "Seljelvnes, Balsfjord",
+      "lat": 69.2684,
+      "lng": 19.4141,
       "pickup": true,
-      "delivery": true,
+      "delivery": false,
       "photo": "/img/snowshoes.webp",
       "photo_illustration": true,
       "photo_credit": {
@@ -107,7 +121,14 @@
       "shoe_eu": 42,
       "clothing_size": null,
       "ski_length_cm": null,
-      "fits_height_cm": null
+      "fits_height_cm": null,
+      "meeting_points": [
+        {
+          "name": "Coop Extra Nordkjosbotn (parkeringsplassen)",
+          "lat": 69.2181,
+          "lng": 19.5569
+        }
+      ]
     }
   ]
 }

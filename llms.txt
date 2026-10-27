@@ -1,8 +1,8 @@
 # NordKiln
-> Rent outdoor and winter gear in Northern Norway. Peer-to-peer rental of skis, snowshoes, snowboards, winter clothes, hiking/camping gear and wet/dry suits from locals in Troms (Tromsø, Balsfjord, Lyngen), expanding to Senja and Lofoten. Delivery to cabins/Airbnbs or pickup.
+> Rent outdoor and winter gear in Northern Norway. Peer-to-peer rental of skis, snowshoes, snowboards, winter clothes, hiking/camping gear and wet/dry suits from locals in Troms (Tromsø, Balsfjord, Lyngen), expanding to Senja and Lofoten. Free pickup nearby, meeting points, or delivery where the owner offers it.
 
-- Owners list for free (0% fee). Renters pay a 15% service fee on top of the owner's price (minimum 49 NOK per booking).
-- Booking is request-based: send a request on the site, the owner confirms, then total price and payment details are sent by email. No payment on the website yet.
+- Owners list for free. Renters see the full total (rent, service fee, any delivery) before they book.
+- Instant booking: free dates are confirmed immediately and the renter gets the pickup place, times and the owner's phone right away. Payment by Vipps or cash at pickup. Some listings use request-based booking (owner answers within 24 h).
 - NordKiln is a marketplace; the rental agreement is between owner and renter. Rental rules (deposit, return deadline, late return, damage, cancellation): https://nordkiln.dev/rules/
 - Pickup at the owner is free; owners may add free meeting points and optional delivery priced per km (one way).
 - Languages: English (https://nordkiln.dev/), Norwegian (https://nordkiln.dev/no/), German (https://nordkiln.dev/de/), Simplified Chinese (https://nordkiln.dev/zh/).
@@ -10,9 +10,9 @@
 - Contact: scan.nordkiln@mail.grokbot.com
 
 ## Current listings
-- Völkl touring ski set with skins and boots: 450 NOK/day + renter fee, Balsfjord, pickup or delivery
-- Cross-country skis: 250 NOK/day + renter fee, Balsfjord, pickup or delivery
-- Snowshoes: 150 NOK/day + renter fee, Balsfjord, pickup or delivery
+- Völkl touring ski set with skins and boots: 450 NOK/day + renter fee, Seljelvnes, Balsfjord, pickup
+- Cross-country skis: 250 NOK/day + renter fee, Seljelvnes, Balsfjord, pickup
+- Snowshoes: 150 NOK/day + renter fee, Seljelvnes, Balsfjord, pickup
 Live data: https://nordkiln.dev/listings.json
 
 ## Pages

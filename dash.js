@@ -39,9 +39,9 @@ function renderListings(){var box=$('d-list');
   box.innerHTML=listings.map(function(x){var img=x.photos&&x.photos[0]?'<img src="'+esc(photoUrl(x.photos[0]))+'" alt="" loading="lazy">':'<div class="noimg">📷</div>';
     return '<div class="dl'+(x.active?'':' off')+'">'+img+'<div class="dlb"><b>'+esc(t(x.title))+'</b><span class="small">'+(x.price_per_day?fmt(x.price_per_day)+' '+S.per_day:'')+' · 📍 '+esc(x.place)+(x.deposit?' · '+S.d_dep_v+' '+fmt(x.deposit)+' kr':'')+'</span>'+(priv[x.id]&&priv[x.id].address_is_approx?'<span class="small warn">'+esc(S.f_addr_approx)+'</span>':'')+
     '<div class="dla"><label class="sw"><input type="checkbox" data-act="toggle" data-id="'+x.id+'"'+(x.active?' checked':'')+'> '+(x.active?S.d_active:S.d_hidden)+'</label><button class="linkbtn" data-act="edit" data-id="'+x.id+'">'+S.d_edit+'</button></div></div></div>'}).join('')}
-var RQSEL='id,listing_id,renter_name,renter_email,renter_phone,date_from,date_to,days,mode,address,size,message,language,subtotal,fee,total,deposit,status,payment_status,deposit_status,owner_note,created_at,meeting_point,delivery_km,delivery_price,pickup_time,return_by,rules_version,rules_accepted_at,listings(title)';
+var RQSEL='id,listing_id,renter_name,renter_email,renter_phone,date_from,date_to,days,mode,address,size,message,language,subtotal,fee,total,deposit,status,payment_status,deposit_status,owner_note,created_at,meeting_point,delivery_km,delivery_price,pickup_time,return_by,rules_version,rules_accepted_at,instant,cancel_reason,cancelled_by,listings(title)';
 function loadReqs(){sb.from('rental_requests').select(RQSEL).order('created_at',{ascending:false}).limit(100).then(function(r){reqs=r.data||[];renderReqs();focusReq()})}
-function badge(x){var m={pending:S.d_st_pending,accepted:S.d_st_accepted,declined:S.d_st_declined,cancelled:S.d_st_cancelled}[x.status];
+function badge(x){var m={pending:S.d_st_pending,confirmed:S.d_st_confirmed,accepted:S.d_st_accepted,declined:S.d_st_declined,cancelled:S.d_st_cancelled}[x.status];
   var b='<span class="badge '+x.status+'">'+m+'</span>';
   if(x.payment_status==='paid')b+=' <span class="badge accepted">'+S.d_paid+'</span>';else if(x.payment_status==='awaiting')b+=' <span class="badge pending">'+S.d_pay_await+'</span>';
   if(x.deposit_status==='authorized')b+=' <span class="badge accepted">'+S.d_dep_auth+'</span>';return b}
@@ -60,6 +60,8 @@ function renderReqs(){var box=$('d-req-list'),n=reqs.filter(function(x){return x
     if(x.rules_accepted_at)rows.push(['✓',S.d_rules_ok+' ('+x.rules_version+')']);
     var act='';
     if(x.status==='pending')act='<textarea id="n-'+x.id+'" rows="2" placeholder="'+esc(S.d_note_ph)+'"></textarea><div class="dla"><button class="btn sm" data-act="accept" data-id="'+x.id+'">✓ '+S.d_accept+'</button><button class="btn sm ghost2" data-act="decline" data-id="'+x.id+'">'+S.d_decline+'</button></div>';
+    if((x.status==='confirmed'||x.status==='accepted')&&x.date_to>=new Date().toISOString().slice(0,10))act+='<details class="cxl"><summary class="linkbtn danger">'+S.d_cancel+'</summary><textarea id="c-'+x.id+'" rows="2" maxlength="1000" placeholder="'+esc(S.d_cancel_ph)+'"></textarea><button class="btn sm ghost2" data-act="cancel" data-id="'+x.id+'">'+S.d_cancel+'</button></details>';
+    if(x.cancel_reason)rows.push([S.d_st_cancelled,x.cancel_reason]);
     if(x.deposit_status==='authorized')act+='<button class="linkbtn" data-act="release" data-id="'+x.id+'">'+S.d_release+'</button>';
     return '<article class="rq '+x.status+'" id="rq-'+x.id+'"><div class="rqh"><b>'+esc(title)+'</b>'+badge(x)+'</div><p class="rqn">👤 '+esc(x.renter_name)+' · '+esc((x.language||'').toUpperCase())+'</p>'+
       '<dl>'+rows.map(function(r){return '<dt>'+esc(r[0])+'</dt><dd>'+esc(r[1])+'</dd>'}).join('')+'</dl>'+(x.status!=='declined'?contact(x):'')+act+'</article>'}).join('')}
@@ -77,6 +79,9 @@ document.addEventListener('click',function(ev){var b=ev.target.closest('[data-ac
   if(a==='accept')respond(id,'accept',b);
   else if(a==='decline'){if(confirm(S.d_conf_decline))respond(id,'decline',b)}
   else if(a==='release')respond(id,'release_deposit',b);
+  else if(a==='cancel'){var c=$('c-'+id),why=c?c.value.trim():'';if(why.length<3){toast(S.d_reason_need);if(c)c.focus();return}if(!confirm(S.d_conf_cancel_txt||S.d_cancel_conf))return;
+    b.disabled=true;fn('respond-request',{id:id,action:'cancel',note:why}).then(function(j){b.disabled=false;toast(j.ok?S.d_cancelled_msg:S.f_err);loadReqs()}).catch(function(){b.disabled=false;toast(S.d_offline)})}
+  else if(a==='rmblock'){sb.from('listing_blocks').delete().eq('id',id).then(function(r){if(r.error)toast(S.f_err);loadBlocks()})}
   else if(a==='edit')openEdit(listings.filter(function(x){return x.id===id})[0]);
   else if(a==='rmphoto'){photos.splice(+b.getAttribute('data-i'),1);renderPhotos()}});
 document.addEventListener('change',function(ev){var b=ev.target.closest('[data-act="toggle"]');if(!b)return;
@@ -97,7 +102,7 @@ function openEdit(x){editing=x||null;x=x||{category:'ski',pickup:true,delivery:f
   var w=x.pickup_windows||{weekday:{from:'16:00',to:'20:00'},weekend:{from:'10:00',to:'18:00'}};setWin('wd',w.weekday);setWin('we',w.weekend);setv('e-ret',x.return_by||'18:00');setv('e-note',x.handover_note);
   var pv=editing&&priv[editing.id];setv('e-addr',pv&&pv.pickup_address);$('e-addr-approx').hidden=!(pv&&pv.address_is_approx);
   mps=(x.meeting_points||[]).map(function(m){return{name:m.name,lat:m.lat,lng:m.lng}});mpActive=-1;renderMps();$('e-mp').open=mps.length>0;
-  $('e-active').checked=x.active!==false;
+  $('e-active').checked=x.active!==false;$('e-instant').checked=x.instant_book!==false;$('e-bl').hidden=!editing;if(editing)loadBlocks();
   $('e-del').hidden=!editing;photos=(x.photos||[]).map(function(p){return{path:p}});renderPhotos();
   $('e-sizes').open=!!(x.shoe_eu_min||x.ski_length_cm||x.fits_height_min||(x.clothing_sizes||[]).length);
   if(dlg.showModal)dlg.showModal();else dlg.setAttribute('open','')}
@@ -121,6 +126,10 @@ $('e-mp-add').addEventListener('click',function(){mps.push({name:'',lat:null,lng
 $('e-mps').addEventListener('input',function(ev){var i=ev.target.getAttribute('data-mpn');if(i!=null)mps[+i].name=ev.target.value});
 $('e-mps').addEventListener('click',function(ev){var p=ev.target.closest('[data-mpp]'),x=ev.target.closest('[data-mpx]');
   if(p){mpActive=+p.getAttribute('data-mpp');renderMps()}if(x){mps.splice(+x.getAttribute('data-mpx'),1);mpActive=-1;renderMps()}});
+function loadBlocks(){if(!editing)return;var lid=editing.id;sb.from('listing_blocks').select('id,date_from,date_to').eq('listing_id',lid).gte('date_to',new Date().toISOString().slice(0,10)).order('date_from').then(function(r){
+  if(!editing||editing.id!==lid)return;var l=r.data||[];$('e-blocks').innerHTML=l.length?l.map(function(b){return '<div class="dla"><span>🚫 '+dmy(b.date_from)+' – '+dmy(b.date_to)+'</span><button type="button" class="linkbtn danger" data-act="rmblock" data-id="'+b.id+'">×</button></div>'}).join(''):'<p class="small">'+S.d_block_none+'</p>'})}
+$('e-b-add').addEventListener('click',function(){var a=$('e-b1').value,b=$('e-b2').value||a;if(!editing||!a||b<a){toast(S.f_err);return}
+  sb.from('listing_blocks').insert({listing_id:editing.id,owner_id:user.id,date_from:a,date_to:b}).then(function(r){if(r.error){toast(/23P01|overlap|booked/.test((r.error.code||'')+r.error.message)?S.d_block_err:S.f_err);return}$('e-b1').value=$('e-b2').value='';loadBlocks()})});
 function geocode(q){if(!q)return Promise.resolve(null);return fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=no&q='+encodeURIComponent(q)).then(function(r){return r.json()}).then(function(a){return a&&a[0]?[+(+a[0].lat).toFixed(5),+(+a[0].lon).toFixed(5)]:null}).catch(function(){return null})}
 $('e-place').addEventListener('change',togPlace);
 var gps=null;
@@ -146,7 +155,7 @@ F.addEventListener('submit',function(e){e.preventDefault();if(!F.checkValidity()
   uploadAll().then(function(paths){
     var v={category:$('e-cat').value,source_lang:lang,title:tObj,description:dObj,price_per_day:num('e-price'),deposit:num('e-dep'),
       shoe_eu_min:s1,shoe_eu_max:s2,clothing_sizes:[].slice.call(document.querySelectorAll('#e-cloth input:checked')).map(function(c){return c.value}),
-      ski_length_cm:num('e-ski'),fits_height_min:h1,fits_height_max:h2||h1,place:pl||'Troms',lat:lat,lng:lng,pickup:true,delivery:$('e-deliv').checked,photos:paths,active:$('e-active').checked,
+      ski_length_cm:num('e-ski'),fits_height_min:h1,fits_height_max:h2||h1,place:pl||'Troms',lat:lat,lng:lng,pickup:true,instant_book:$('e-instant').checked,delivery:$('e-deliv').checked,photos:paths,active:$('e-active').checked,
       delivery_price_per_km:$('e-deliv').checked?num('e-dper'):num('e-dper'),delivery_max_km:num('e-dmax'),delivery_min_price:num('e-dmin'),
       meeting_points:mps.filter(function(m){return m.name.trim()&&m.lat!=null}).map(function(m){return{name:m.name.trim().slice(0,80),lat:m.lat,lng:m.lng}}),
       pickup_windows:{weekday:getWin('wd'),weekend:getWin('we')},return_by:$('e-ret').value||'18:00',handover_note:$('e-note').value.trim()||null};
