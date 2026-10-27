@@ -51,6 +51,9 @@ function render(){
       var m=LF.circleMarker([p.lat,p.lng],{radius:9+Math.min(xs.length,5),color:'#0a5f67',weight:3,fillColor:'#0e7c86',fillOpacity:.85});
       m.bindPopup('<div class="pop"><b>📍 '+esc(p.place)+'</b>'+xs.map(function(x){return'<div style="margin-top:6px"><b>'+esc(t(x.title))+'</b><br>'+(x.price_per_day?fmt(x.price_per_day)+' '+S.per_day:S.price_ask)+'<br><a href="#" data-rent="'+esc(x.id)+'">'+S.rent_btn+' →</a></div>'}).join('')+'</div>');
       if(xs.length>1)m.bindTooltip(String(xs.length),{permanent:true,direction:'center',className:'cnt'});layer.addLayer(m);});
+    var mp={};sel.forEach(function(x){(x.meeting_points||[]).forEach(function(q){if(q.lat!=null)(mp[q.name]=mp[q.name]||{q:q,xs:[]}).xs.push(x)})});
+    Object.keys(mp).forEach(function(n){var o=mp[n];var mk=LF.circleMarker([o.q.lat,o.q.lng],{radius:7,color:'#b86e00',weight:3,fillColor:'#f4b860',fillOpacity:.95});
+      mk.bindPopup('<div class="pop"><b>🤝 '+S.m_opt_meet+': '+esc(n)+'</b><div class="small">'+S.m_free+' · '+o.xs.map(function(x){return esc(t(x.title))}).join(', ')+'</div></div>');layer.addLayer(mk)});
   }
 }
 function initMap(){var el=$('map');if(!el||!LF)return;
