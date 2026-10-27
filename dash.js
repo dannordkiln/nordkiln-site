@@ -99,7 +99,7 @@ var dlg=$('d-edit'),F=$('d-edit-form');
 $('d-new').addEventListener('click',function(){openEdit(null)});
 $('e-cancel').addEventListener('click',closeEdit);$('e-x').addEventListener('click',closeEdit);
 function closeEdit(){if(dlg.close)dlg.close();else dlg.removeAttribute('open')}
-function setv(id,v){$(id).value=v==null?'':v}
+function setv(id,v){var el=$(id);v=v==null?'':String(v);if(v&&el.tagName==='SELECT'){v=v.slice(0,5);if(![].some.call(el.options,function(o){return o.value===v}))el.add(new Option(v,v))}el.value=v}
 function openEdit(x){editing=x||null;x=x||{category:'ski',pickup:true,delivery:false,active:true,clothing_sizes:[],photos:[],place:(profile&&profile.place)||''};
   setv('e-cat',x.category);setv('e-title',t(x.title));setv('e-desc',t(x.description));setv('e-price',x.price_per_day);setv('e-dep',x.deposit);
   setv('e-shoe1',x.shoe_eu_min!=null?Math.round(x.shoe_eu_min):'');setv('e-shoe2',x.shoe_eu_max!=null?Math.round(x.shoe_eu_max):'');setv('e-ski',x.ski_length_cm);setv('e-h1',x.fits_height_min);setv('e-h2',x.fits_height_max);
@@ -117,7 +117,7 @@ function openEdit(x){editing=x||null;x=x||{category:'ski',pickup:true,delivery:f
 function togPlace(){$('e-place2w').hidden=$('e-place').value!=='__other'}
 function togDeliv(){var on=$('e-deliv').checked;$('e-dlw').hidden=!on;$('e-dper').required=on;$('e-dmax').required=on}
 $('e-deliv').addEventListener('change',togDeliv);
-function setWin(k,w){$('e-'+k+'1').value=w?w.from:'';$('e-'+k+'2').value=w?w.to:'';$('e-'+k+'x').checked=!w}
+function setWin(k,w){setv('e-'+k+'1',w?w.from:'');setv('e-'+k+'2',w?w.to:'');$('e-'+k+'x').checked=!w}
 function getWin(k){if($('e-'+k+'x').checked)return null;var a=$('e-'+k+'1').value,b=$('e-'+k+'2').value;return a&&b&&b>a?{from:a,to:b}:null}
 $('e-presets').addEventListener('click',function(ev){var b=ev.target.closest('[data-pre]');if(!b)return;var p=b.getAttribute('data-pre').split('|');
   setWin('wd',{from:p[0].split('-')[0],to:p[0].split('-')[1]});setWin('we',{from:p[1].split('-')[0],to:p[1].split('-')[1]})});
