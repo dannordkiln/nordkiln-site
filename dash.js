@@ -25,7 +25,13 @@ sb.auth.onAuthStateChange(function(ev,session){var u=session&&session.user;
   if(u&&(!user||user.id!==u.id)){user=u;show('d-login',false);show('d-app',true);$('d-who').textContent=u.email;loadAll()}
   else if(!u){user=null;show('d-app',false);show('d-login',true)}});
 /* ---------- data ---------- */
-function loadAll(){loadProfile();loadListings();loadReqs();initNotif();initPay()}
+function loadAll(){loadProfile();loadListings();loadReqs();initNotif();initPay();loadRevs()}
+function loadRevs(){sb.from('reviews').select('id,listing_id,renter_first_name,rating,rating_gear,rating_handover,body,owner_reply,created_at,listings(title)').eq('owner_id',user.id).order('created_at',{ascending:false}).limit(50).then(function(r){var l=r.data||[],box=$('d-rv-list');
+  if(!l.length){box.innerHTML='<p class="small">'+S.d_rv_none+'</p>';return}
+  var avg=l.reduce(function(a,v){return a+v.rating},0)/l.length;
+  box.innerHTML='<p><b>'+S.d_rv_avg+': ★ '+avg.toFixed(1)+'</b> ('+l.length+')</p>'+l.map(function(v){return '<article class="rq"><div class="rqh"><b>'+esc(t(v.listings&&v.listings.title))+'</b><span>'+'★'.repeat(v.rating)+'</span></div>'+
+    '<p class="small">'+esc(v.renter_first_name)+' · '+dmy(v.created_at.slice(0,10))+' · '+S.rv_gear+' '+v.rating_gear+'/5 · '+S.rv_hand+' '+v.rating_handover+'/5</p>'+(v.body?'<p>'+esc(v.body)+'</p>':'')+
+    (v.owner_reply?'<p class="small"><b>'+S.rv_reply+':</b> '+esc(v.owner_reply)+'</p>':'<textarea id="rp-'+v.id+'" rows="2" maxlength="500" placeholder="'+esc(S.d_rv_reply_ph)+'"></textarea><button class="btn sm ghost2" data-act="reply" data-id="'+v.id+'">'+S.d_rv_reply+'</button>')+'</article>'}).join('')})}
 function loadProfile(){sb.from('owners').select('name,phone,language,place').eq('id',user.id).maybeSingle().then(function(r){profile=r.data||{};
   $('p-name').value=profile.name||'';$('p-phone').value=profile.phone||'';$('p-place').value=profile.place||'';$('p-lang').value=profile.language||LG;
   show('d-profile-need',!(profile.name&&profile.phone))})}
@@ -81,6 +87,8 @@ document.addEventListener('click',function(ev){var b=ev.target.closest('[data-ac
   else if(a==='release')respond(id,'release_deposit',b);
   else if(a==='cancel'){var c=$('c-'+id),why=c?c.value.trim():'';if(why.length<3){toast(S.d_reason_need);if(c)c.focus();return}if(!confirm(S.d_conf_cancel_txt||S.d_cancel_conf))return;
     b.disabled=true;fn('respond-request',{id:id,action:'cancel',note:why}).then(function(j){b.disabled=false;toast(j.ok?S.d_cancelled_msg:S.f_err);loadReqs()}).catch(function(){b.disabled=false;toast(S.d_offline)})}
+  else if(a==='reply'){var tx=$('rp-'+id),val=tx?tx.value.trim():'';if(!val)return;b.disabled=true;
+    sb.from('reviews').update({owner_reply:val.slice(0,500)}).eq('id',id).then(function(r){b.disabled=false;if(r.error){toast(S.f_err);return}toast(S.d_saved);loadRevs()})}
   else if(a==='rmblock'){sb.from('listing_blocks').delete().eq('id',id).then(function(r){if(r.error)toast(S.f_err);loadBlocks()})}
   else if(a==='edit')openEdit(listings.filter(function(x){return x.id===id})[0]);
   else if(a==='rmphoto'){photos.splice(+b.getAttribute('data-i'),1);renderPhotos()}});

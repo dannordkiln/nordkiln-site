@@ -30,12 +30,14 @@ function initSize(){var a=$('sz-shoe'),b=$('sz-cloth'),c=$('sz-height'),z=$('sz-
   z.addEventListener('click',function(){a.value=b.value=c.value='';upd()})}
 /* ---------- cards + map ---------- */
 function priceHtml(x){return x.price_per_day?('<div class="price">'+fmt(x.price_per_day)+' <small>'+S.per_day+'</small></div>'):'<div class="price"><small>'+S.price_ask+'</small></div>'}
+function num1(n){return new Intl.NumberFormat(LG==='de'?'de-DE':LG==='no'?'nb-NO':'en-GB',{minimumFractionDigits:1,maximumFractionDigits:1}).format(n)}
+function rateHtml(x){return x.rv_n?'<span class="rate">★ '+num1(x.rv_avg)+' ('+x.rv_n+')</span>':'<span class="rate new">'+S.rv_new+'</span>'}
 function card(x){
   var c=x.photo_credit,cr=c?(' · <a href="'+esc(c.source)+'" target="_blank" rel="noopener">'+esc(c.author)+', '+esc(c.license)+'</a>'):'';
   var img=x.photo?('<figure><img src="'+esc(x.photo)+'" alt="'+esc(t(x.title))+(x.photo_illustration?' ('+S.illus+')':'')+'" loading="lazy" width="800" height="600">'+(x.photo_illustration?'<figcaption>'+S.illus+cr+'</figcaption>':'')+'</figure>'):'';
   var tags=sizeTags(x);if(x.pickup!==false)tags.push(S.pickup+(S.m_free?' · '+S.m_free:''));if((x.meeting_points||[]).length)tags.push(S.m_opt_meet+': '+esc(x.meeting_points.map(function(m){return m.name}).join(', ')));if(x.delivery&&(x.delivery_price_per_km!=null||!NK.api))tags.push(S.delivery);if(x.size)tags.push(S.size+': '+esc(x.size));
   tags.push(S.deposit+': '+(x.deposit?fmt(x.deposit)+' kr':(S.m_dep_none||S.deposit_none)));
-  return '<article class="card" id="l-'+esc(x.id)+'">'+img+'<div class="b"><h3>'+esc(t(x.title))+'</h3><p class="meta">📍 '+esc(x.place)+' · '+NK.cats[x.category]+'</p>'+priceHtml(x)+'<p class="meta">'+esc(t(x.description))+'</p><div class="tags">'+tags.map(function(g){return'<span class="tag">'+g+'</span>'}).join('')+'</div><button class="btn sm rent" type="button" data-rent="'+esc(x.id)+'">'+S.rent_btn+'</button></div></article>';
+  return '<article class="card" id="l-'+esc(x.id)+'">'+img+'<div class="b"><h3>'+esc(t(x.title))+'</h3><p class="meta">📍 '+esc(x.place)+' · '+NK.cats[x.category]+' · '+rateHtml(x)+'</p>'+priceHtml(x)+'<p class="meta">'+esc(t(x.description))+'</p><div class="tags">'+tags.map(function(g){return'<span class="tag">'+g+'</span>'}).join('')+'</div><button class="btn sm rent" type="button" data-rent="'+esc(x.id)+'">'+S.rent_btn+'</button></div></article>';
 }
 function render(){
   var box=$('cards'),inCat=listings.filter(function(x){return cat==='all'||x.category===cat}),sel=inCat.filter(match);
@@ -157,7 +159,19 @@ function renderCal(){var box=$('m-cal');if(!box)return;var a=$('m-from').value,b
 function calClick(ev){var bt=ev.target.closest('button[data-d]');if(!bt||bt.disabled)return;var v=bt.getAttribute('data-d'),f=$('m-from'),t=$('m-to');
   if(!f.value||t.value||v<=f.value){f.value=v;t.value='';t.min=v}else{t.value=v}
   rcalc();renderCal();checkTaken()}
-function openRent(id){var x=byId[id];if(!x||!dlg)return;cur=x;
+function stars(n){var r=Math.round(n);return '<span class="rvst" aria-label="'+n+'/5">'+'★★★★★'.slice(0,r)+'<span style="color:#d5dde1">'+'★★★★★'.slice(0,5-r)+'</span></span>'}
+function loadReviews(x){var box=$('m-rv'),ow=$('m-owner');box.hidden=true;box.innerHTML='';ow.textContent='';if(!NK.api||!x.uuid)return;var H={headers:{apikey:NK.api.key}};
+  fetch(NK.api.url+'/rest/v1/rpc/listing_owner',{method:'POST',headers:{apikey:NK.api.key,'Content-Type':'application/json'},body:JSON.stringify({p_listing:x.uuid})}).then(function(r){return r.ok?r.json():[]})
+   .then(function(o){if(cur!==x||!o[0])return;ow.innerHTML='· '+S.rv_owner+': <b>'+esc(o[0].name)+'</b> '+(o[0].n?'★ '+num1(o[0].avg)+' ('+o[0].n+')':'<span class="rate new">'+S.rv_new+'</span>')}).catch(function(){});
+  if(!x.rv_n)return;
+  fetch(NK.api.url+'/rest/v1/reviews?select=id,renter_first_name,rating,body,owner_reply,created_at&listing_id=eq.'+x.uuid+'&order=created_at.desc&limit=5',H).then(function(r){return r.ok?r.json():[]}).then(function(rs){if(cur!==x)return;
+    var loc={no:'nb-NO',de:'de-DE',zh:'zh-CN',en:'en-GB'}[LG]||'en-GB';
+    box.innerHTML='<b>'+S.rv_h+'</b> <span class="rate">★ '+num1(x.rv_avg)+' ('+x.rv_n+')</span><div class="avg"><span>'+S.rv_gear+': '+stars(x.rv_g)+' '+num1(x.rv_g)+'</span><span>'+S.rv_hand+': '+stars(x.rv_h)+' '+num1(x.rv_h)+'</span></div>'+
+      rs.map(function(v){return '<div class="rv"><p>'+stars(v.rating)+' <b>'+esc(v.renter_first_name)+'</b> · <span class="small">'+new Date(v.created_at).toLocaleDateString(loc,{month:'long',year:'numeric'})+'</span></p>'+(v.body?'<p>'+esc(v.body)+'</p>':'')+
+        (v.owner_reply?'<p class="reply"><b>'+S.rv_reply+':</b> '+esc(v.owner_reply)+'</p>':'')+'<a href="#" class="rep" data-report="'+v.id+'">'+S.rv_report+'</a></div>'}).join('')+'<p class="small">'+S.rv_verified+'</p>';box.hidden=false}).catch(function(){})}
+document.addEventListener('click',function(ev){var a=ev.target.closest('[data-report]');if(!a)return;ev.preventDefault();var why=prompt(S.rv_report_q);if(why===null)return;
+  fetch(NK.api.url+'/functions/v1/review',{method:'POST',headers:{'Content-Type':'application/json',apikey:NK.api.key},body:JSON.stringify({action:'report',review_id:a.getAttribute('data-report'),reason:why})}).then(function(){a.textContent=S.rv_reported;a.removeAttribute('data-report')})});
+function openRent(id){var x=byId[id];if(!x||!dlg)return;cur=x;loadReviews(x);
   $('m-form').hidden=false;$('m-ok').hidden=true;var ins=x.instant_book!==false;$('m-inst').hidden=!ins;$('m-send').textContent=ins?S.m_send:S.m_send_req;$('m-note').textContent=ins?S.m_note:S.m_note_req;loadBusy(x);
   $('m-h').textContent=t(x.title);$('m-sub').textContent=(x.price_per_day?fmt(x.price_per_day)+' '+S.per_day+' · ':'')+'📍 '+x.place;
   $('m-item').value=t(x.title)+' ['+x.id+']';$('m-id').value=x.id;
@@ -218,7 +232,9 @@ var COLS='id,slug,category,title,description,price_per_day,deposit,shoe_eu_min,s
 function loadListings(){var stat=function(){return fetch('/listings.json',{cache:'no-cache'}).then(function(r){return r.json()}).then(function(d){return d.listings||[]})};
   if(!NK.api)return stat();
   return fetch(NK.api.url+'/rest/v1/listings?select='+COLS+'&active=eq.true&order=created_at.asc',{headers:{apikey:NK.api.key}})
-    .then(function(r){if(!r.ok)throw r;return r.json()}).then(function(rows){return rows.map(fromRow)}).catch(stat)}
+    .then(function(r){if(!r.ok)throw r;return r.json()}).then(function(rows){var ls=rows.map(fromRow);
+      return fetch(NK.api.url+'/rest/v1/listing_ratings?select=*',{headers:{apikey:NK.api.key}}).then(function(r){return r.ok?r.json():[]}).catch(function(){return[]})
+      .then(function(rt){var m={};rt.forEach(function(q){m[q.listing_id]=q});ls.forEach(function(x){var q=m[x.uuid];if(q){x.rv_avg=+q.avg;x.rv_n=q.n;x.rv_g=+q.avg_gear;x.rv_h=+q.avg_handover}});return ls})}).catch(stat)}
 /* ---------- events ---------- */
 document.addEventListener('click',function(ev){
   var r=ev.target.closest('[data-rent]');if(r){ev.preventDefault();openRent(r.getAttribute('data-rent'));return}
